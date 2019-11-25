@@ -1,0 +1,12 @@
+<script type="text/javascript">
+    function check(url, popupcontent) {
+        if (confirm(popupcontent)) {
+            window.location = url;
+        }
+    }
+</script>
+
+<?=
+//Render the button html here
+$block->getButtonHtml();
+?>

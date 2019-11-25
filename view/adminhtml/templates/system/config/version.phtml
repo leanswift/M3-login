@@ -1,0 +1,27 @@
+<?php
+$getList = $block->getList();
+foreach ($getList as $key => $list) :?>
+<?=
+    $label = null;
+    $version = null;
+    $edition = null;
+    if (array_key_exists('label', $list)) {
+        $label = $list['label'];
+    }
+    if (array_key_exists('version', $list)) {
+        $version = $list['version'];
+    }
+    if (array_key_exists('edition', $list)) {
+        $edition = $list['edition'];
+    }
+    ?>
+    <div class="version-notice">
+        <p>
+            <b><label><?=  $label. ":"; ?></label></b>
+            <strong style="color: #ef672f; line-height:34px;"><?= $version; ?><?= (isset($edition))
+                    ? ' '.$edition : ''; ?></strong>
+        </p>
+    </div>
+<?php
+endforeach;
+?>
