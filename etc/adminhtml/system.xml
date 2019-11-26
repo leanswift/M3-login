@@ -39,6 +39,15 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Enable option to disable magento product]]></comment>
                 </field>
+                <field id="mingle_url" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0"
+                       showInStore="0">
+                    <label>Mingle URL</label>
+                    <validate>validate-url</validate>
+                    <depends>
+                        <field id="enable_login">1</field>
+                    </depends>
+                    <comment><![CDATA[ URL for accessing Mingle API]]></comment>
+                </field>
                 <field id="domain_name" translate="label" type="text" sortOrder="5" showInDefault="1">
                     <label>Domain Name</label>
                     <depends>

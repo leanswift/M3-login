@@ -29,15 +29,20 @@ use LeanSwift\Econnect\Helper\Secure;
 class AuthClient extends Secure
 {
 
+    const XML_PATH_WEB_MINGLE_URL = 'leanswift_login/general/mingle_url';
+
     const XML_PATH_WEB_SERVICE_URL = 'leanswift_login/authentication/service_url';
+
+    const XML_PATH_ION_URL = 'ion/general_config/service_url';
 
     const XML_PATH_WEB_SERVICE_CLIENTID = 'leanswift_login/authentication/web_service_clientid';
 
     const XML_PATH_WEB_SERVICE_CLIENTSECRET = 'leanswift_login/authentication/web_service_clientsecret';
 
-    const XML_PATH_DOMAIN = 'leanswift_login/authentication/domain_name';
+    const XML_PATH_DOMAIN = 'leanswift_login/general/domain_name';
 
-    const XML_PATH_ENABLE = 'leanswift_login/authentication/enable_login';
+    const XML_PATH_ENABLE = 'leanswift_login/general/enable_login';
+
 
     /**
      * Get Login API Client Id
@@ -73,7 +78,7 @@ class AuthClient extends Secure
     {
         $link = $this->scopeConfig->getValue(self::XML_PATH_WEB_SERVICE_URL);
         $clientId = $this->getClientId();
-        $param = "authorization.oauth2?client_id=$clientId&response_type=code";
+        $param = "as/authorization.oauth2?client_id=$clientId&response_type=code";
         $oauthLink = $link . $param;
         return $oauthLink;
     }
@@ -81,8 +86,19 @@ class AuthClient extends Secure
     public function getTokenLink()
     {
         $link = $this->scopeConfig->getValue(self::XML_PATH_WEB_SERVICE_URL);
-        $oauthLink = $link . 'token.oauth2';
+        $oauthLink = $link . 'as/token.oauth2';
         return $oauthLink;
+    }
+
+    public function getMingleLink()
+    {
+        $link = $this->scopeConfig->getValue(self::XML_PATH_WEB_MINGLE_URL);
+        return $link;
+    }
+
+    public function getIonLink()
+    {
+        return $this->scopeConfig->getValue(self::XML_PATH_ION_URL);
     }
 
     public function logger()
@@ -99,4 +115,15 @@ class AuthClient extends Secure
     {
         return $this->scopeConfig->getValue(self::XML_PATH_ENABLE);
     }
+
+    public function getAccessToken($storeId = null)
+    {
+        return $this->_session->getAccessToken();
+    }
+
+    public function createAccessToken($storeId = null)
+    {
+        return null;
+    }
+
 }

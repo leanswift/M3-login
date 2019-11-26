@@ -46,6 +46,21 @@ class Index extends Action
      */
     protected $authModel;
 
+    /**
+     * @var CustomerRepositoryInterface
+     */
+    protected $customerRepo;
+
+    /**
+     * @var CustomerFactory
+     */
+    protected $customerFactory;
+
+    /**
+     * @var Session
+     */
+    protected $customerSession;
+
     const PATH = 'customer/account/login';
 
     /**
@@ -83,19 +98,35 @@ class Index extends Action
         if ($info) {
             $code = $info['code'];
             $accessToken = $this->authModel->generateToken($code);
-            if ($accessToken) {
-                $email =  $this->_coreSession->getEmail();
+            $userDetails = $this->authModel->getUserName($accessToken);
+            if ($userDetails) {
+                $email =  $userDetails['Email'];
                 try{
-                    $customerRepo = $this->customerRepo->get($email);                    //load with email
-                    $customer = $this->customerFactory->create()->load($customerRepo->getId());     //get the customer model by id
-                    $this->customerSession->setCustomerAsLoggedIn($customer);
+                    $this->logincustomer($email);
                 } catch (\Exception $e)
                 {
-                    $this->messageManager->addNoticeMessage('Email is not registered!');
+                    $result = $this->authModel->createCustomer($userDetails);
+                    if ($result) {
+                        $this->logincustomer($email);
+                    }
                 }
             }
         }
 
         $this->_redirect(self::PATH);
     }
+
+    public function logincustomer($email)
+    {
+        try{
+            $customerRepo = $this->customerRepo->get($email);                    //load with email
+            $customer = $this->customerFactory->create()->load($customerRepo->getId());     //get the customer model by id
+            $this->customerSession->setCustomerAsLoggedIn($customer);
+        } catch (\Exception $e)
+        {
+
+        }
+
+    }
+
 }
