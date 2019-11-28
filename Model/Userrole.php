@@ -24,8 +24,11 @@
 
 namespace LeanSwift\Login\Model;
 
+use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\Model\AbstractModel;
-
+use Magento\Framework\Model\Context;
+use Magento\Framework\Model\ResourceModel\AbstractResource;
+use Magento\Framework\Registry;
 
 /**
  * Class Userrole
@@ -35,11 +38,19 @@ use Magento\Framework\Model\AbstractModel;
 class Userrole extends AbstractModel
 {
 
+    /**
+     * Userrole constructor.
+     * @param Context $context
+     * @param Registry $registry
+     * @param AbstractResource|null $resource
+     * @param AbstractDb|null $resourceCollection
+     * @param array $data
+     */
     public function __construct(
         Context $context,
-        \Magento\Framework\Registry $registry,
-        ResourceModel\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        Registry $registry,
+        AbstractResource $resource = null,
+        AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         parent::__construct($context, $registry, $resource, $resourceCollection, $data);
