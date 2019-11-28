@@ -88,7 +88,7 @@
                        showInStore="0">
                     <label>Roles Initial Load</label>
                     <frontend_model>LeanSwift\Login\Block\Backend\Roles\Ion\Initial</frontend_model>
-                    <comment><![CDATA[Initial load historical customer order invoice data from M3.]]></comment>
+                    <comment><![CDATA[Initial load user role data from M3.]]></comment>
                 </field>
             </group>
         </section>
