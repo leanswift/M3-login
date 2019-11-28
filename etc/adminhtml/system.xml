@@ -53,7 +53,7 @@
                     <depends>
                         <field id="enable_login">1</field>
                     </depends>
-                    <comment><![CDATA[ Enter the infor domain name [example.com]]]></comment>
+                    <comment><![CDATA[Enter the Infor domain names with comma seperated]]></comment>
                 </field>
             </group>
             <group id="authentication" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="0"
