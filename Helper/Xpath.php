@@ -24,17 +24,12 @@
 
 namespace LeanSwift\Login\Helper;
 
-use LeanSwift\Econnect\Helper\Constant as EconnectConstant;
-
 /**
- * Class Constant
+ * Class Xpath
  *
  * @package LeanSwift\Login\Helper
  */
-class Constant extends EconnectConstant
+class Xpath
 {
 
-
-    const SyncLSUserRoles = 'SyncLSUserRoles';
-    const LSUserRoles = 'LSUserRoles';
 }

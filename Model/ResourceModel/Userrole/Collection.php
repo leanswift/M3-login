@@ -22,19 +22,18 @@
  * @license     https://www.leanswift.com/end-user-licensing-agreement
  */
 
-namespace LeanSwift\Login\Helper;
+namespace LeanSwift\Login\Model\ResourceModel\Userrole;
 
-use LeanSwift\Econnect\Helper\Constant as EconnectConstant;
+use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
 
-/**
- * Class Constant
- *
- * @package LeanSwift\Login\Helper
- */
-class Constant extends EconnectConstant
+class Collection extends AbstractCollection
 {
-
-
-    const SyncLSUserRoles = 'SyncLSUserRoles';
-    const LSUserRoles = 'LSUserRoles';
+    /**
+     * Initialize the object
+     */
+    public function _construct()
+    {
+        parent::_construct();
+        $this->_init('LeanSwift\Login\Model\Userrole', 'LeanSwift\Login\Model\ResourceModel\Userrole');
+    }
 }

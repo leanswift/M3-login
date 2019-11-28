@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!--
+  ~ LeanSwift eConnect Extension
+  ~
+  ~ NOTICE OF LICENSE
+  ~
+  ~ This source file is subject to the LeanSwift eConnect Extension License
+  ~ that is bundled with this package in the file LICENSE.txt located in the
+  ~ Connector Server.
+  ~
+  ~ DISCLAIMER
+  ~
+  ~ This extension is licensed and distributed by LeanSwift. Do not edit or add
+  ~ to this file if you wish to upgrade Extension and Connector to newer
+  ~ versions in the future. If you wish to customize Extension for your needs
+  ~ please contact LeanSwift for more information. You may not reverse engineer,
+  ~ decompile, or disassemble LeanSwift Connector Extension (All Versions),
+  ~ except and only to the extent that such activity is expressly permitted by
+  ~ applicable law not withstanding this limitation.
+  ~
+  ~ @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
+  ~ @license     https://www.leanswift.com/end-user-licensing-agreement
+  -->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="leanswift_login_user" resource="default" engine="innodb" comment="LeanSwift Login User">
+        <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true"
+                comment="Id"/>
+        <column xsi:type="varchar" name="username" nullable="false" length="255" default="0" comment="User Name"/>
+        <column xsi:type="text" name="roleinfo" nullable="true" comment="Role Info"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <index referenceId="LOGIN_USERNAME" indexType="btree">
+            <column name="username"/>
+        </index>
+    </table>
+    <table name="leanswift_login_roles" resource="default" engine="innodb" comment="LeanSwift Login Roles">
+        <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true"
+                comment="Id"/>
+        <column xsi:type="varchar" name="role" nullable="false" length="255" default="0" comment="Role"/>
+        <column xsi:type="varchar" name="name" nullable="false" length="255" default="0" comment="Role Name"/>
+        <column xsi:type="text" name="description" nullable="true" comment="Role Description"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <index referenceId="LOGIN_ROLES" indexType="btree">
+            <column name="role"/>
+        </index>
+    </table>
+    <table name="leanswift_login_roleinfo" resource="default" engine="innodb" comment="LeanSwift Login Role Info">
+        <column xsi:type="int" name="id" padding="10" unsigned="true" nullable="false" identity="true"
+                comment="Id"/>
+        <column xsi:type="varchar" name="role" nullable="false" length="255" default="0" comment="Role"/>
+        <column xsi:type="varchar" name="function" nullable="false" length="255" default="0" comment="Role Function"/>
+        <column xsi:type="varchar" name="company" nullable="false" length="255" default="0" comment="Company"/>
+        <column xsi:type="varchar" name="division" nullable="false" length="255" default="0" comment="Division"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <index referenceId="LOGIN_ROLEINFO" indexType="btree">
+            <column name="role"/>
+        </index>
+    </table>
+</schema>

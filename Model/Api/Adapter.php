@@ -26,7 +26,8 @@ use Exception;
 use LeanSwift\Econnect\Helper\Constant;
 use LeanSwift\Econnect\Helper\Data;
 use LeanSwift\Econnect\Helper\Ion;
-use LeanSwift\Login\Helper\AuthClient as Secure;
+use LeanSwift\Login\Helper\AuthClient;
+use LeanSwift\Econnect\Helper\Secure;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Model\AbstractModel;
 use Zend_Http_Client;
@@ -58,6 +59,13 @@ class Adapter extends AbstractModel
     protected $_helperSecure = null;
 
     /**
+     * LeanSwift LOGIN Authorize
+     *
+     * @var AuthClient
+     */
+    protected $helperAuth = null;
+
+    /**
      * LeanSwift Helper Ion
      *
      * @var Ion
@@ -71,11 +79,12 @@ class Adapter extends AbstractModel
      * @param Secure $helperSecure
      * @param Ion    $ion
      */
-    public function __construct(Data $helperData, Secure $helperSecure, Ion $ion)
+    public function __construct(Data $helperData, Secure $helperSecure, Ion $ion, AuthClient $authClient)
     {
         $this->_helperData = $helperData;
         $this->_ionHelper = $ion;
         $this->_helperSecure = $helperSecure;
+        $this->helperAuth = $authClient;
     }
 
     /**
@@ -128,8 +137,14 @@ class Adapter extends AbstractModel
                     //Initialize new access token
                     $this->_ionHelper->writeLog('Access token Invalid!', false);
                     $this->_ionHelper->writeLog('Initialise new access token !', false);
-                    $this->_helperSecure->createAccessToken($storeId);
-                    $accessToken = $this->_helperSecure->getAccessToken();
+                    $customer = $this->_helperData->getCustomerSession();
+                    if ($customer->isLoggedIn()) {
+                        $accessToken = $this->helperAuth->createAccessToken();
+                    } else {
+                        $this->_helperSecure->createAccessToken($storeId);
+                        $accessToken = $this->_helperSecure->getAccessToken();
+                    }
+
 
                     if ($accessToken == '' || $accessToken == null) {
                         $msg = 'Please Check Oauth credentials, there might be a problem on creating access token !';
@@ -159,13 +174,13 @@ class Adapter extends AbstractModel
                         $k = 0;
                         foreach ($parsedResult[Constant::RESULTS] as $resultData) {
                             if ($txnType == Constant::API_TXN_LIST) {
-                                $responseData[Constant::DATA][$k][Constant::OUTPUT] = $resultData[Constant::RECORDS];
+                                $responseData[Constant::OUTPUT] = $resultData[Constant::RECORDS];
                                 if (array_key_exists('errorMessage', $resultData)) {
                                     $errorMessage = $resultData['errorMessage'];
-                                    $responseData[Constant::DATA][$k]['error'] = $errorMessage;
+                                    $responseData['error'] = $errorMessage;
                                 }
                             } else {
-                                $responseData[Constant::DATA][Constant::OUTPUT] = $resultData[Constant::RECORDS];
+                                $responseData[Constant::OUTPUT] = $resultData[Constant::RECORDS];
                                 if (array_key_exists('errorMessage', $resultData)) {
                                     $errorMessage = $resultData['errorMessage'];
                                     $responseData['error'] = $errorMessage;
@@ -267,14 +282,17 @@ class Adapter extends AbstractModel
         $client = $this->_helperSecure->getClient();
         $storeId = $this->_ionHelper->getStoreId();
         $client->setConfig(['timeout' => 60]);
-
-        //Preparing Access token for oAuth
-        $accessToken = $this->_helperSecure->getAccessToken();
-        if ($accessToken == '' || $accessToken == null) {
-            $this->_helperSecure->createAccessToken($storeId);
+        $customer = $this->_helperData->getCustomerSession();
+        if ($customer->isLoggedIn()) {
+            $accessToken = $this->helperAuth->getAccessToken();
+        } else {
+            //Preparing Access token for oAuth
             $accessToken = $this->_helperSecure->getAccessToken();
+            if ($accessToken == '' || $accessToken == null) {
+                $this->_helperSecure->createAccessToken($storeId);
+                $accessToken = $this->_helperSecure->getAccessToken();
+            }
         }
-
         //Preparing header info for oAuth verification
         $client->setHeaders(
             ['Authorization' => 'Bearer ' . $accessToken]
