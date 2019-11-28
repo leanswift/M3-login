@@ -87,7 +87,8 @@ final class AuthPlugin
         if ($isEnable) {
             $domain = substr($username, strpos($username, '@') + 1);
             $dns = $this->auth->getDomain();
-            if ($domain == $dns) {
+            $dnsArray = explode(",",$dns);
+            if (in_array($domain, $dnsArray)) {
                 $this->_coreSession->start();
                 $this->_coreSession->setEmail($username);
                 $flag = false;

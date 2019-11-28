@@ -25,8 +25,10 @@
 namespace LeanSwift\Login\Model;
 
 use LeanSwift\Login\Helper\AuthClient;
-
-
+use LeanSwift\Login\Model\Api\Adapter;
+use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Customer\Model\CustomerFactory;
+use Magento\Framework\Session\SessionManagerInterface;
 
 class Authentication
 {
@@ -35,9 +37,42 @@ class Authentication
      */
     private $auth;
 
-    public function __construct(AuthClient $authClient)
-    {
+    /**
+     * @var CustomerFactory
+     */
+    private $customerFactory;
+
+    /**
+     * @var CustomerRepositoryInterface
+     */
+    private $customerRepo;
+
+    /**
+     * @var Adapter
+     */
+    private $erpApi;
+
+    /**
+     * Authentication constructor.
+     *
+     * @param AuthClient                  $authClient
+     * @param CustomerFactory             $customerFactory
+     * @param CustomerRepositoryInterface $customerRepository
+     * @param SessionManagerInterface     $coreSession
+     * @param Adapter                     $adapter
+     */
+    public function __construct(
+        AuthClient $authClient,
+        CustomerFactory $customerFactory,
+        CustomerRepositoryInterface $customerRepository,
+        SessionManagerInterface $coreSession,
+        Adapter $adapter
+    ) {
         $this->auth = $authClient;
+        $this->customerFactory = $customerFactory;
+        $this->customerRepo = $customerRepository;
+        $this->_coreSession = $coreSession;
+        $this->erpApi = $adapter;
     }
 
     public function generateToken($code)
@@ -46,11 +81,9 @@ class Authentication
         $client = $this->auth->getClient();
         $url = $this->auth->getTokenLink();
         $client->setUri($url);
-        $callbackUrl = urlencode(urldecode('http://127.0.0.1/econnect/ce/231/login/'));
         $credentials['client_id']= $this->auth->getClientId();
         $credentials['client_secret']= $this->auth->getClientSecret();
         $credentials['grant_type']= 'authorization_code';
-        $credentials['redirect_ur']= $callbackUrl;
         $credentials['code']= $code;
         $client->setParameterPost($credentials);
         $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);
@@ -60,7 +93,11 @@ class Authentication
                 $parsedResult = $response->getBody();
                 $responseBody = json_decode($parsedResult, true);
                 $accessToken = $responseBody['access_token'];
+                $refreshToken = $responseBody['refresh_token'];
                 $this->auth->logger()->writeLog('New access token : ' . $accessToken);
+                $this->_coreSession->start();
+                $this->_coreSession->setAccessToken($accessToken);
+                $this->_coreSession->setRefreshToken($refreshToken);
             }
         } catch (Exception $e) {
             $this->auth->logger()->writeLog('API request failed' . $e->getMessage());
@@ -70,18 +107,68 @@ class Authentication
 
     }
 
-    public function requestToken($code)
+    public function getUserName($accessToken)
+    {
+        if (!$accessToken) {
+            return false;
+        }
+        $client = $this->auth->getClient();
+        $mingleUrl = $this->auth->getMingleLink();
+        $url = $mingleUrl.'/api/v1/mingle/go/User/Detail';
+        $client->setHeaders(
+            ['Authorization' => 'Bearer ' . $accessToken]
+        );
+        $client->setUri($url);
+        $client->setRawData('', 'application/json');
+        $client->setConfig(['maxredirects' => 3, 'timeout' => 20, 'keepalive' => true]);
+        $userDetailList = false;
+        $username = false;
+        try {
+            $response = $client->request('POST');
+            if ($response->getStatus() == 200) {
+                $parsedResult = $response->getBody();
+                $responseBody = json_decode($parsedResult, true);
+                $userDetailList = $responseBody['UserDetailList'][0];
+
+            }
+        } catch (Exception $e) {
+            $this->auth->logger()->writeLog('API request failed' . $e->getMessage());
+        }
+        if ($userDetailList) {
+            $username = false;
+            $usercode = $userDetailList['UserName'];
+            $email = $userDetailList['Email'];
+            $firstName = $userDetailList['FirstName'];
+            $lastName = $userDetailList['LastName'];
+            $customerData = [
+                'email' => $email,
+                'firstname' => $firstName,
+                'lastname' => $lastName,
+            ];
+            $data['EUID'] = $usercode;
+            $url = $this->auth->getIonLink() . "/MNS150MI/GetUserByEuid?EUID=$usercode";
+            $method = '';
+            $recordInfo = $this->sendRequest('', $method, 20, $url, null, 'GET');
+            if ($recordInfo['results']) {
+                $username = $recordInfo['results'][0]['records'][0]['USID'];
+                $customerData['username'] = $username;
+            }
+        }
+
+        return $customerData;
+    }
+
+
+    public function requestToken()
     {
         $accessToken = '';
         $client = $this->auth->getClient();
         $url = $this->auth->getOauthLink();
         $client->setUri($url);
-        $callbackUrl = urlencode(urldecode('http://127.0.0.1/econnect/ce/231/login/'));
         $credentials['client_id']= $this->auth->getClientId();
         $credentials['client_secret']= $this->auth->getClientSecret();
-        $credentials['grant_type']= 'authorization_code';
-        $credentials['redirect_ur']= $callbackUrl;
-        $credentials['code']= $code;
+        $credentials['grant_type']= 'refresh_token';
+        $credentials['refresh_token']= $this->_coreSession->getRefreshToken();
         $client->setParameterPost($credentials);
         $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);
         try {
@@ -89,75 +176,53 @@ class Authentication
             if ($response->getStatus() == 200) {
                 $parsedResult = $response->getBody();
                 $responseBody = json_decode($parsedResult, true);
-                var_dump($response);
                 $accessToken = $responseBody['access_token'];
+                $refreshToken = $responseBody['refresh_token'];
                 $this->auth->logger()->writeLog('New access token : ' . $accessToken);
+                $this->_coreSession->setAccessToken($accessToken);
+                $this->_coreSession->setRefreshToken($refreshToken);
             }
         } catch (Exception $e) {
             return $this->auth->logger()->writeLog('API request failed' . $e->getMessage());
         }
-die;
         return $accessToken;
 
     }
-    public function checklogin()
+
+    public function sendRequest($data, $method, $timeout=20, $url=null, $client=null,$requestType='POST')
     {
-        $consumerKey = 'LEANSWIFT_TST~1g10WVgepkEDqeIUrCcjzFWxLJRrUtwDPiuxKhKRL5Y';
-        $callbackUrl = urlencode(urldecode('http://127.0.0.1/econnect/ce/231/econnect/'));
-        $consumerSecret = 'rMDxHJV0IAHckObLHAKIwrhcj3gOZVrd9NLC_IV1n8efRCKu6Wv9s5_XhkTB5ZZHz1iD__VUVcYaGsroG9h7wQ';
-        $magentoBaseUrl = rtrim('https://mingle-sso.inforcloudsuite.com:443/LEANSWIFT_TST/as/authorization.oauth2');
-        $oauthVerifier = 'authorization_code';
-
-        /*
-        OAuthClientRequest request = OAuthClientRequest
-            .authorizationProvider("https://mingle-sso.inforcloudsuite.com:443/LEANSWIFT_TST/as/authorization.oauth2")
-            .setClientId("ACME_PRD~QxG91-i82CO4P7L5R1YR4YwdOy
-        Ww5caGh0UqkvqYrUY")
-            .setRedirectURI("http://sample-oauth2-client.in
-        for.com:8080/SampleAppOAuth2/redirect"
-                .setResponseType("code")
-                .buildQueryMessage();*/
-        /*$credentials = new \OAuth\Common\Consumer\Credentials($consumerKey, $consumerSecret, $callbackUrl);
-        $oAuthClient = new OauthClient($credentials);*/
-
-
-        //Initialize Zend Client Object
-        $client = new \Zend_Http_Client();
-        $options = [
-            'ssl' => [
-                // Verify server side certificate,
-                // do not accept invalid or self-signed SSL certificates
-                'verify_peer'       => false,
-                'verify_peer_name'  => false,
-                'allow_self_signed' => false,
-                // Capture the peer's certificate
-                'capture_peer_cert' => false,
-            ],
-        ];
-        // Create an adapter object and attach it to the HTTP client
-        $adapter = new \Zend_Http_Client_Adapter_Socket();
-        $adapter->setStreamContext($options);
-        $client->setAdapter($adapter);
-        $url = 'https://mingle-sso.inforcloudsuite.com:443/LEANSWIFT_TST/as/token.oauth2';
-        $client->setUri($url);
-        /*        $credentials['client_id']= $consumerKey;
-                $credentials['client_secret']= $consumerSecret;
-                $credentials['grant_type']= 'authorization_code';
-                $credentials['redirect_ur']= $callbackUrl;
-                $credentials['code']= 'Ck0rkQdEhqpdHIhBOBD0UYEUkbX9HOBG1IEHxaWN';
-                $client->setParameterPost($credentials);
-                $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);*/
-
-        $credentials['client_id']= $consumerKey;
-        $credentials['client_secret']= $consumerSecret;
-        $credentials['grant_type']= 'refresh_token';
-        $credentials['refresh_token']= 'NabD4EVwM3VCgoJqxY174oFlyHlMbco0SkMKN8F7K0';
-        $client->setParameterPost($credentials);
-        $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);
-        try {
-            $response = $client->request('POST');
-        } catch (Exception $e) {
-            return $this->_dataHelper->writeLog('API request failed' . $e->getMessage());
+        $responseBody = false;
+        if ($client == null) {
+            $client = $this->auth->getClient();
         }
+        if ($url == null) {
+            $url = $this->auth->getIonLink().$method;
+        }
+        $accessToken = $this->_coreSession->getAccessToken();
+        $client->setUri($url);
+        $client->setHeaders(
+            ['Authorization' => 'Bearer ' . $accessToken]
+        );
+        $client->setHeaders(['accept' => 'application/json;charset=utf-8']);
+        if ($data) {
+            $data = json_encode($data);
+        }
+        $client->setRawData('{}', 'application/json');
+        $client->setConfig(['maxredirects' => 3, 'timeout' => $timeout, 'keepalive' => true]);
+        try {
+            $response = $client->request($requestType);
+            if ($response->getStatus() == 200) {
+                $parsedResult = $response->getBody();
+                $responseBody = json_decode($parsedResult, true);
+
+            }
+        } catch (Exception $e) {
+            $this->auth->logger()->writeLog('API request failed' . $e->getMessage());
+        }
+
+        return $responseBody;
     }
+
+
+
 }
