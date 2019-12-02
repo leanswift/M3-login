@@ -76,6 +76,7 @@ class Import extends Action
     {
         $roles = $this->helper->erpapi()->getRolesList();
         $rolesInfo = $this->helper->erpapi()->getRolesInfo();
+        $message = false;
         if ($roles) {
             $message = $this->roleResource->updateRoles($roles);
         }

@@ -190,4 +190,32 @@ class Authentication
         return $responseBody;
     }
 
+    public function requestToken()
+    {
+        $accessToken = '';
+        $client = $this->auth->getClient();
+        $url = $this->auth->getOauthLink();
+        $client->setUri($url);
+        $credentials['client_id'] = $this->auth->getClientId();
+        $credentials['client_secret'] = $this->auth->getClientSecret();
+        $credentials['grant_type'] = 'refresh_token';
+        $credentials['refresh_token'] = $this->_coreSession->getRefreshToken();
+        $client->setParameterPost($credentials);
+        $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);
+        try {
+            $response = $client->request('POST');
+            if ($response->getStatus() == 200) {
+                $parsedResult = $response->getBody();
+                $responseBody = json_decode($parsedResult, true);
+                $accessToken = $responseBody['access_token'];
+                $refreshToken = $responseBody['refresh_token'];
+                $this->auth->logger()->writeLog('New access token : ' . $accessToken);
+                $this->_coreSession->setAccessToken($accessToken);
+                $this->_coreSession->setRefreshToken($refreshToken);
+            }
+        } catch (Exception $e) {
+            return $this->auth->logger()->writeLog('API request failed' . $e->getMessage());
+        }
+        return $accessToken;
+    }
 }

@@ -253,12 +253,6 @@ class Adapter extends AbstractModel
         $data['program'] = $program;
         //M3 user which can be defined in system configuration.
         $data['m3User'] = $m3user;
-        //If storeID exist then pick the company and division from respective store.
-        if ($storeId) {
-            $data[Constant::KEY_CONO] = (int)$this->_ionHelper->getCompany($storeId);
-            $data[Constant::KEY_DIVI] = $this->_ionHelper->getDivision($storeId);
-        }
-
         //Standard date format
         $data['dateFormat'] = self::DATE_FORMAT_CODE;
         $data['readTimeoutMillis'] = self::READ_TIMEOUT_MILLI_DURATION;
