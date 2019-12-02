@@ -40,11 +40,12 @@ class Userrole extends AbstractModel
 
     /**
      * Userrole constructor.
-     * @param Context $context
-     * @param Registry $registry
+     *
+     * @param Context               $context
+     * @param Registry              $registry
      * @param AbstractResource|null $resource
-     * @param AbstractDb|null $resourceCollection
-     * @param array $data
+     * @param AbstractDb|null       $resourceCollection
+     * @param array                 $data
      */
     public function __construct(
         Context $context,
@@ -66,7 +67,5 @@ class Userrole extends AbstractModel
 
     public function prepareRoleInfo()
     {
-
     }
-
 }

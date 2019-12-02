@@ -28,16 +28,18 @@ use Closure;
 use LeanSwift\Login\Helper\AuthClient;
 use Magento\Customer\Model\AccountManagement;
 use Magento\Framework\App\ResponseFactory;
-use Psr\Log\LoggerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
+use Psr\Log\LoggerInterface;
 
 
 /**
  * Class AuthPlugin
+ *
  * @package LeanSwift\Login\Plugin\Customer
  */
 final class AuthPlugin
 {
+
     /**
      * @var LoggerInterface
      */
@@ -64,8 +66,7 @@ final class AuthPlugin
         ResponseFactory $responseFactory,
         AuthClient $authClient,
         SessionManagerInterface $coreSession
-    )
-    {
+    ) {
         $this->logger = $logger;
         $this->responseFactory = $responseFactory;
         $this->auth = $authClient;
@@ -87,7 +88,7 @@ final class AuthPlugin
         if ($isEnable) {
             $domain = substr($username, strpos($username, '@') + 1);
             $dns = $this->auth->getDomain();
-            $dnsArray = explode(",",$dns);
+            $dnsArray = explode(",", $dns);
             if (in_array($domain, $dnsArray)) {
                 $this->_coreSession->start();
                 $this->_coreSession->setEmail($username);

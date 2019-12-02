@@ -24,29 +24,14 @@
 
 namespace LeanSwift\Login\Model\Subscriber;
 
+use Exception;
+use LeanSwift\Econnect\Api\MessageInterface;
 use LeanSwift\Econnect\Api\SubscriberInterface;
 use LeanSwift\Econnect\Helper\Ion;
-use LeanSwift\Econnect\Helper\Product as ProductHelper;
-use LeanSwift\Econnect\Model\Catalog\Ion\CustomerPrice;
-use LeanSwift\Econnect\Model\Catalog\Ion\ProductStock;
-use LeanSwift\Econnect\Model\Catalog\Ion\SaveProduct;
-use LeanSwift\Econnect\Model\Customer\Ion\Import;
-use LeanSwift\Econnect\Model\ResourceModel\NonStockItems;
-use LeanSwift\Econnect\Model\Sales\Ion\Import as SalesIonImport;
-use Magento\Customer\Model\Customer as CustomerModel;
-use Magento\Framework\Api\AttributeValueFactory;
-use Magento\Framework\Api\ExtensionAttributesFactory;
-use Magento\Framework\Data\Collection\AbstractDb;
-use Magento\Framework\Model\Context;
-use Magento\Framework\Model\ResourceModel\AbstractResource;
-use Magento\Framework\Registry;
-use Magento\Framework\Xml\Parser;
-use LeanSwift\Login\Helper\Erpapi as LoginHelper;
-use LeanSwift\Login\Helper\Xpath;
-use LeanSwift\Login\Helper\Constant;
-use LeanSwift\Econnect\Api\MessageInterface;
-use Magento\Framework\Exception\NoSuchEntityException;
 use LeanSwift\Econnect\Model\Subscriber\IonAbstractModel;
+use LeanSwift\Login\Helper\Constant;
+use LeanSwift\Login\Helper\Erpapi as LoginHelper;
+use Magento\Framework\Xml\Parser;
 
 /**
  * Class UserRoles
@@ -82,18 +67,17 @@ class UserRoles extends IonAbstractModel implements SubscriberInterface
         Ion $helperData,
         Parser $parser,
         LoginHelper $loginhelper
-
     ) {
         $this->apihelper = $loginhelper;
-       $this->_xmlParser = $parser;
-       $this->_helper = $helperData;
+        $this->_xmlParser = $parser;
+        $this->_helper = $helperData;
     }
-
 
     /**
      * Process the message from Queue
      *
      * @param MessageInterface $message
+     *
      * @return bool|mixed
      */
     public function processMessage(MessageInterface $message)
@@ -123,7 +107,7 @@ class UserRoles extends IonAbstractModel implements SubscriberInterface
                 $userData = $this->_prepareData($userResponseData);
                 $this->apihelper->updateuser($username, $userData);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->_helper->writeLog($e->getMessage(), false, null, 'catalog');
             return false;
         }
@@ -133,6 +117,7 @@ class UserRoles extends IonAbstractModel implements SubscriberInterface
      * Prepares data from AvailableToPromise BOD
      *
      * @param $atpData
+     *
      * @return mixed
      */
     public function _prepareData($userRoleData)

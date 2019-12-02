@@ -26,10 +26,9 @@ namespace LeanSwift\Login\Setup\Patch\Data;
 
 use Magento\Customer\Model\Customer;
 use Magento\Customer\Setup\CustomerSetupFactory;
-use Magento\Framework\App\ResourceConnection;
+use Magento\Eav\Model\Entity\Attribute\SetFactory as AttributeSetFactory;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
-use Magento\Eav\Model\Entity\Attribute\SetFactory as AttributeSetFactory;
 
 /**
  * Class AddCustomerAttribute
@@ -38,6 +37,12 @@ use Magento\Eav\Model\Entity\Attribute\SetFactory as AttributeSetFactory;
  */
 class AddUsernameAttribute implements DataPatchInterface
 {
+
+    /**
+     * @var AttributeSetFactory
+     */
+    protected $attributeSetFactory;
+
     /**
      * @var ModuleDataSetupInterface
      */
@@ -48,16 +53,11 @@ class AddUsernameAttribute implements DataPatchInterface
      */
     private $customerSetupFactory;
 
-
-    /**
-     * @var AttributeSetFactory
-     */
-    protected $attributeSetFactory;
-
     /**
      * AddCustomerUpdatedAtAttribute constructor.
+     *
      * @param ModuleDataSetupInterface $moduleDataSetup
-     * @param CustomerSetupFactory $customerSetupFactory
+     * @param CustomerSetupFactory     $customerSetupFactory
      */
     public function __construct(
         ModuleDataSetupInterface $moduleDataSetup,
@@ -67,6 +67,22 @@ class AddUsernameAttribute implements DataPatchInterface
         $this->moduleDataSetup = $moduleDataSetup;
         $this->customerSetupFactory = $customerSetupFactory;
         $this->attributeSetFactory = $attributeSetFactory;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function getDependencies()
+    {
+        return [];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function getVersion()
+    {
+        return '1.0.1';
     }
 
     /**
@@ -84,42 +100,26 @@ class AddUsernameAttribute implements DataPatchInterface
             Customer::ENTITY,
             'username',
             [
-                'type' => 'varchar',
-                'label' => 'UserName',
-                'input' => 'text',
-                'required' => false,
-                'is_used_in_grid' => true,
-                'is_visible_in_grid' => false,
+                'type'                  => 'varchar',
+                'label'                 => 'UserName',
+                'input'                 => 'text',
+                'required'              => false,
+                'is_used_in_grid'       => true,
+                'is_visible_in_grid'    => false,
                 'is_filterable_in_grid' => true,
-                'position' => 155,
-                'system' => false,
-                'visible' => true,
+                'position'              => 155,
+                'system'                => false,
+                'visible'               => true,
             ]
         );
 
         $attribute = $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, 'username')->addData([
-            'attribute_set_id' => $attributeSetId,
+            'attribute_set_id'   => $attributeSetId,
             'attribute_group_id' => $attributeGroupId,
-            'used_in_forms' => ['adminhtml_customer'],
+            'used_in_forms'      => ['adminhtml_customer'],
         ]);
 
         $attribute->save();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function getDependencies()
-    {
-        return [];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function getVersion()
-    {
-        return '1.0.1';
     }
 
     /**

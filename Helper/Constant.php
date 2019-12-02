@@ -36,5 +36,6 @@ class Constant extends EconnectConstant
 
 
     const SyncLSUserRoles = 'SyncLSUserRoles';
+
     const LSUserRoles = 'LSUserRoles';
 }

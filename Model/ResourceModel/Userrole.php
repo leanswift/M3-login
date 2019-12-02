@@ -24,6 +24,7 @@
 
 namespace LeanSwift\Login\Model\ResourceModel;
 
+use Exception;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 
 /**
@@ -33,6 +34,7 @@ use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
  */
 class Userrole extends AbstractDb
 {
+
     /**
      * Initialize the object
      */
@@ -51,24 +53,6 @@ class Userrole extends AbstractDb
         $tableName = $this->getTable('leanswift_login_roles');
         $this->truncate($tableName);
         return $this->updateRecord($tableName, $data);
-
-    }
-
-    public function updateUser($data)
-    {
-        $tableName = $this->getTable('leanswift_login_user');
-        $username = $data['username'];
-        $this->deleteRecord($username);
-        return $this->updateRecord($tableName, $data);
-
-    }
-
-    public function updateRoleInfo($data)
-    {
-        $tableName = $this->getTable('leanswift_login_roleinfo');
-        $this->truncate($tableName);
-        return $this->updateRecord($tableName, $data);
-
     }
 
     private function truncate($tableName)
@@ -79,16 +63,23 @@ class Userrole extends AbstractDb
 
     public function updateRecord($tableName, $data, $fields = [])
     {
-        try{
+        try {
             $adapter = $this->getConnection();
             $adapter->insertOnDuplicate($tableName, $data, $fields);
             $flag = true;
-        } catch (\Exception $e)
-        {
+        } catch (Exception $e) {
             $flag = false;
         }
 
         return $flag;
+    }
+
+    public function updateUser($data)
+    {
+        $tableName = $this->getTable('leanswift_login_user');
+        $username = $data['username'];
+        $this->deleteRecord($username);
+        return $this->updateRecord($tableName, $data);
     }
 
     public function deleteRecord($username)
@@ -104,5 +95,49 @@ class Userrole extends AbstractDb
         } catch (Exception $e) {
             $connection->rollBack();
         }
+    }
+
+    public function updateRoleInfo($data)
+    {
+        $tableName = $this->getTable('leanswift_login_roleinfo');
+        $this->truncate($tableName);
+        return $this->updateRecord($tableName, $data);
+    }
+
+    public function getRolesByUser($username)
+    {
+        $adapter = $this->getConnection();
+        $tableName = $this->getTable('leanswift_login_user');
+        $select = $adapter->select()->from($tableName)
+            ->where('username=:username');
+
+        $binds = ['username' => $username];
+
+        return $adapter->fetchRow($select, $binds);
+    }
+
+    public function getRolesList()
+    {
+        $adapter = $this->getConnection();
+        $tableName = $this->getTable('leanswift_login_roles');
+        $select = $adapter->select()->from($tableName);
+
+        return $adapter->fetchRow($select);
+    }
+
+    public function getFuncByRoles($role, $cono = false, $divi = false)
+    {
+        $adapter = $this->getConnection();
+        $tableName = $this->getTable('leanswift_login_roleinfo');
+        $select = $adapter->select()->from($tableName)
+            ->where("role=$role");
+        if ($cono) {
+            $adapter->where("company=$cono");
+        }
+        if ($divi) {
+            $adapter->where("division=$divi");
+        }
+
+        return $adapter->fetchRow($select);
     }
 }

@@ -24,11 +24,11 @@
 
 namespace LeanSwift\Login\Controller\Adminhtml\Ion;
 
-use LeanSwift\Login\Helper\Erpapi;
+use LeanSwift\Login\Helper\Data;
+use LeanSwift\Login\Model\ResourceModel\Userrole;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Registry;
-use LeanSwift\Login\Model\ResourceModel\Userrole;
 
 /**
  * Class Import
@@ -39,9 +39,9 @@ class Import extends Action
 {
 
     /**
-     * @var Erpapi
+     * @var Data
      */
-    protected $_apiHelper;
+    protected $helper;
 
     /**
      * @var Userrole
@@ -49,19 +49,20 @@ class Import extends Action
     protected $roleResource;
 
     /**
-     * TestConnection constructor.
+     * Import constructor.
      *
      * @param Context  $context
      * @param Registry $coreRegistry
-     * @param Erpapi   $erpapi
+     * @param Data     $erpapi
+     * @param Userrole $userrole
      */
     public function __construct(
         Context $context,
         Registry $coreRegistry,
-        Erpapi $erpapi,
+        Data $erpapi,
         Userrole $userrole
     ) {
-        $this->_apiHelper = $erpapi;
+        $this->helper = $erpapi;
         $this->roleResource = $userrole;
         parent::__construct($context);
     }
@@ -73,16 +74,20 @@ class Import extends Action
      */
     public function execute()
     {
-        $roles = $this->_apiHelper->getRolesList();
-        $rolesInfo = $this->_apiHelper->getRolesInfo();
+        $roles = $this->helper->erpapi()->getRolesList();
+        $rolesInfo = $this->helper->erpapi()->getRolesInfo();
         if ($roles) {
-            $this->roleResource->updateRoles($roles);
+            $message = $this->roleResource->updateRoles($roles);
         }
-        if ($rolesInfo) {
-            $this->roleResource->updateRoleInfo($rolesInfo);
+        if ($rolesInfo && $message) {
+            $message = $this->roleResource->updateRoleInfo($rolesInfo);
         }
         $resultRedirect = $this->resultRedirectFactory->create();
-
+        if ($message == true) {
+            $this->messageManager->addSuccess(__('User and Role import was successful!'));
+        } else {
+            $this->messageManager->addErrorMessage(__('User and Role import was failed!'));
+        }
         return $resultRedirect->setUrl($this->_redirect->getRefererUrl());
     }
 }

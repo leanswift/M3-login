@@ -5,19 +5,21 @@
  * NOTICE OF LICENSE
  *
  * This source file is subject to the LeanSwift eConnect Extension License
- * that is bundled with this package in the file LICENSE.txt located in the Connector Server.
+ * that is bundled with this package in the file LICENSE.txt located in the
+ * Connector Server.
  *
  * DISCLAIMER
  *
- * This extension is licensed and distributed by LeanSwift. Do not edit or add to this file
- * if you wish to upgrade Extension and Connector to newer versions in the future.
- * If you wish to customize Extension for your needs please contact LeanSwift for more
- * information. You may not reverse engineer, decompile,
- * or disassemble LeanSwift Connector Extension (All Versions), except and only to the extent that
- * such activity is expressly permitted by applicable law not withstanding this limitation.
+ * This extension is licensed and distributed by LeanSwift. Do not edit or add
+ * to this file if you wish to upgrade Extension and Connector to newer
+ * versions in the future. If you wish to customize Extension for your needs
+ * please contact LeanSwift for more information. You may not reverse engineer,
+ * decompile, or disassemble LeanSwift Connector Extension (All Versions),
+ * except and only to the extent that such activity is expressly permitted by
+ * applicable law not withstanding this limitation.
  *
  * @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
- * @license     http://www.leanswift.com/license/connector-extension
+ * @license     https://www.leanswift.com/end-user-licensing-agreement
  */
 
 namespace LeanSwift\Login\Model\Api;
@@ -26,8 +28,8 @@ use Exception;
 use LeanSwift\Econnect\Helper\Constant;
 use LeanSwift\Econnect\Helper\Data;
 use LeanSwift\Econnect\Helper\Ion;
-use LeanSwift\Login\Helper\AuthClient;
 use LeanSwift\Econnect\Helper\Secure;
+use LeanSwift\Login\Helper\AuthClient;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Model\AbstractModel;
 use Zend_Http_Client;
@@ -71,6 +73,11 @@ class Adapter extends AbstractModel
      * @var Ion
      */
     protected $_ionHelper;
+
+    /**
+     * @var Authentication
+     */
+    protected $auth;
 
     /**
      * Adapter constructor.
@@ -139,7 +146,7 @@ class Adapter extends AbstractModel
                     $this->_ionHelper->writeLog('Initialise new access token !', false);
                     $customer = $this->_helperData->getCustomerSession();
                     if ($customer->isLoggedIn()) {
-                        $accessToken = $this->helperAuth->createAccessToken();
+                        // $accessToken = $this->auth->requestToken();
                     } else {
                         $this->_helperSecure->createAccessToken($storeId);
                         $accessToken = $this->_helperSecure->getAccessToken();

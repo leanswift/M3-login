@@ -32,6 +32,7 @@ use Magento\Framework\Session\SessionManagerInterface;
 
 class Authentication
 {
+
     /**
      * @var AuthClient
      */
@@ -81,10 +82,10 @@ class Authentication
         $client = $this->auth->getClient();
         $url = $this->auth->getTokenLink();
         $client->setUri($url);
-        $credentials['client_id']= $this->auth->getClientId();
-        $credentials['client_secret']= $this->auth->getClientSecret();
-        $credentials['grant_type']= 'authorization_code';
-        $credentials['code']= $code;
+        $credentials['client_id'] = $this->auth->getClientId();
+        $credentials['client_secret'] = $this->auth->getClientSecret();
+        $credentials['grant_type'] = 'authorization_code';
+        $credentials['code'] = $code;
         $client->setParameterPost($credentials);
         $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);
         try {
@@ -104,7 +105,6 @@ class Authentication
         }
 
         return $accessToken;
-
     }
 
     public function getUserName($accessToken)
@@ -114,7 +114,7 @@ class Authentication
         }
         $client = $this->auth->getClient();
         $mingleUrl = $this->auth->getMingleLink();
-        $url = $mingleUrl.'/api/v1/mingle/go/User/Detail';
+        $url = $mingleUrl . '/api/v1/mingle/go/User/Detail';
         $client->setHeaders(
             ['Authorization' => 'Bearer ' . $accessToken]
         );
@@ -129,7 +129,6 @@ class Authentication
                 $parsedResult = $response->getBody();
                 $responseBody = json_decode($parsedResult, true);
                 $userDetailList = $responseBody['UserDetailList'][0];
-
             }
         } catch (Exception $e) {
             $this->auth->logger()->writeLog('API request failed' . $e->getMessage());
@@ -141,9 +140,9 @@ class Authentication
             $firstName = $userDetailList['FirstName'];
             $lastName = $userDetailList['LastName'];
             $customerData = [
-                'email' => $email,
+                'email'     => $email,
                 'firstname' => $firstName,
-                'lastname' => $lastName,
+                'lastname'  => $lastName,
             ];
             $data['EUID'] = $usercode;
             $url = $this->auth->getIonLink() . "/MNS150MI/GetUserByEuid?EUID=$usercode";
@@ -158,45 +157,14 @@ class Authentication
         return $customerData;
     }
 
-
-    public function requestToken()
-    {
-        $accessToken = '';
-        $client = $this->auth->getClient();
-        $url = $this->auth->getOauthLink();
-        $client->setUri($url);
-        $credentials['client_id']= $this->auth->getClientId();
-        $credentials['client_secret']= $this->auth->getClientSecret();
-        $credentials['grant_type']= 'refresh_token';
-        $credentials['refresh_token']= $this->_coreSession->getRefreshToken();
-        $client->setParameterPost($credentials);
-        $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);
-        try {
-            $response = $client->request('POST');
-            if ($response->getStatus() == 200) {
-                $parsedResult = $response->getBody();
-                $responseBody = json_decode($parsedResult, true);
-                $accessToken = $responseBody['access_token'];
-                $refreshToken = $responseBody['refresh_token'];
-                $this->auth->logger()->writeLog('New access token : ' . $accessToken);
-                $this->_coreSession->setAccessToken($accessToken);
-                $this->_coreSession->setRefreshToken($refreshToken);
-            }
-        } catch (Exception $e) {
-            return $this->auth->logger()->writeLog('API request failed' . $e->getMessage());
-        }
-        return $accessToken;
-
-    }
-
-    public function sendRequest($data, $method, $timeout=20, $url=null, $client=null,$requestType='POST')
+    public function sendRequest($data, $method, $timeout = 20, $url = null, $client = null, $requestType = 'POST')
     {
         $responseBody = false;
         if ($client == null) {
             $client = $this->auth->getClient();
         }
         if ($url == null) {
-            $url = $this->auth->getIonLink().$method;
+            $url = $this->auth->getIonLink() . $method;
         }
         $accessToken = $this->_coreSession->getAccessToken();
         $client->setUri($url);
@@ -214,7 +182,6 @@ class Authentication
             if ($response->getStatus() == 200) {
                 $parsedResult = $response->getBody();
                 $responseBody = json_decode($parsedResult, true);
-
             }
         } catch (Exception $e) {
             $this->auth->logger()->writeLog('API request failed' . $e->getMessage());
@@ -223,6 +190,32 @@ class Authentication
         return $responseBody;
     }
 
-
-
+    public function requestToken()
+    {
+        $accessToken = '';
+        $client = $this->auth->getClient();
+        $url = $this->auth->getOauthLink();
+        $client->setUri($url);
+        $credentials['client_id'] = $this->auth->getClientId();
+        $credentials['client_secret'] = $this->auth->getClientSecret();
+        $credentials['grant_type'] = 'refresh_token';
+        $credentials['refresh_token'] = $this->_coreSession->getRefreshToken();
+        $client->setParameterPost($credentials);
+        $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);
+        try {
+            $response = $client->request('POST');
+            if ($response->getStatus() == 200) {
+                $parsedResult = $response->getBody();
+                $responseBody = json_decode($parsedResult, true);
+                $accessToken = $responseBody['access_token'];
+                $refreshToken = $responseBody['refresh_token'];
+                $this->auth->logger()->writeLog('New access token : ' . $accessToken);
+                $this->_coreSession->setAccessToken($accessToken);
+                $this->_coreSession->setRefreshToken($refreshToken);
+            }
+        } catch (Exception $e) {
+            return $this->auth->logger()->writeLog('API request failed' . $e->getMessage());
+        }
+        return $accessToken;
+    }
 }
