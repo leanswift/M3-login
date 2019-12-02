@@ -146,7 +146,7 @@ class Adapter extends AbstractModel
                     $this->_ionHelper->writeLog('Initialise new access token !', false);
                     $customer = $this->_helperData->getCustomerSession();
                     if ($customer->isLoggedIn()) {
-                        // $accessToken = $this->auth->requestToken();
+                        $accessToken = $this->helperAuth->getRequestToken();
                     } else {
                         $this->_helperSecure->createAccessToken($storeId);
                         $accessToken = $this->_helperSecure->getAccessToken();

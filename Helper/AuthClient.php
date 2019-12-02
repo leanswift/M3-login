@@ -120,4 +120,33 @@ class AuthClient extends Secure
     {
         return $this->_session->getAccessToken();
     }
+
+    public function getRequestToken()
+    {
+        $accessToken = '';
+        $client = $this->getClient();
+        $url = $this->getOauthLink();
+        $client->setUri($url);
+        $credentials['client_id'] = $this->getClientId();
+        $credentials['client_secret'] = $this->getClientSecret();
+        $credentials['grant_type'] = 'refresh_token';
+        $credentials['refresh_token'] = $this->_session->getRefreshToken();
+        $client->setParameterPost($credentials);
+        $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);
+        try {
+            $response = $client->request('POST');
+            if ($response->getStatus() == 200) {
+                $parsedResult = $response->getBody();
+                $responseBody = json_decode($parsedResult, true);
+                $accessToken = $responseBody['access_token'];
+                $refreshToken = $responseBody['refresh_token'];
+                $this->logger()->writeLog('New access token : ' . $accessToken);
+                $this->_session->setAccessToken($accessToken);
+                $this->_session->setRefreshToken($refreshToken);
+            }
+        } catch (Exception $e) {
+            return $this->logger()->writeLog('API request failed' . $e->getMessage());
+        }
+        return $accessToken;
+    }
 }
