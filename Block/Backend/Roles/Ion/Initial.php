@@ -24,7 +24,10 @@
 
 namespace LeanSwift\Login\Block\Backend\Roles\Ion;
 
+use LeanSwift\Econnect\Helper\Erpapi;
+use LeanSwift\Login\Helper\Constant;
 use Magento\Backend\Block\Template\Context;
+use Magento\Backend\Block\Widget\Button;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\App\Request\Http as RequestInterface;
 use Magento\Framework\Data\Form\Element\AbstractElement;
@@ -37,7 +40,6 @@ use Magento\Framework\Exception\LocalizedException;
  */
 class Initial extends Field
 {
-
     /**
      * Controller path
      */
@@ -46,12 +48,16 @@ class Initial extends Field
     /**
      * @var string
      */
-    public $buttonLabel = 'Import Roles';
+    public $buttonLabel = 'Import';
 
     /**
      * @var RequestInterface
      */
     protected $_request;
+    /**
+     * @var Erpapi
+     */
+    protected $erpAPI;
 
     /**
      * Initial constructor.
@@ -63,9 +69,11 @@ class Initial extends Field
     public function __construct(
         Context $context,
         RequestInterface $request,
+        Erpapi $erpapi,
         array $data = []
     ) {
         $this->_request = $request;
+        $this->erpAPI = $erpapi;
         parent::__construct($context, $data);
         $this->setTemplate('system/config/button.phtml');
     }
@@ -89,19 +97,36 @@ class Initial extends Field
      */
     public function getButtonHtml()
     {
+        $type = Constant::TYPE;
         $website = $this->_request->getParam('website');
-        $redirectUrl = $this->getRedirectUrl() . "website/$website";
-        $button = $this->getLayout()->createBlock(
-            'Magento\Backend\Block\Widget\Button'
-        )->setData(
-            [
-                'id'      => 'Import button',
-                'label'   => __('Import Roles'),
-                'onclick' => 'window.location="' . $redirectUrl . '";',
-            ]
-        );
+        $redirectUrl = $this->getRedirectUrl()."website/$website";
+        $message = $this->getMessage();
+        $timeZone = $this->erpAPI->getTimeZone();
+        $lastUpdatedTime = $this->erpAPI->getLastUpdatedAtHistory($type) ?? '';
+        $html = $this->getLayout()
+            ->createBlock(Button::class)
+            ->setType('button')
+            ->setLabel($this->buttonLabel)
+            ->setOnClick("javascript:check('" . $redirectUrl . "','" . $message . "'); return false;")
+            ->toHtml();
+        $html .= '<p style="display: inline;">';
+        $html .= 'Last synced: ';
+        if ($lastUpdatedTime) {
+            $html .= $lastUpdatedTime . ' [' . $timeZone . ']';
+        }
+        $html .= '</p>';
+        return $html;
+    }
 
-        return $button->toHtml();
+    /**
+     * Return confirmation popup message
+     *
+     * @return string
+     */
+    public function getMessage()
+    {
+        $message = "Are you sure you want to import user roles from M3?";
+        return $message;
     }
 
     /**

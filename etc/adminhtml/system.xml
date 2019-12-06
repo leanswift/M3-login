@@ -78,12 +78,14 @@
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                 </field>
             </group>
-            <group id="import_role" translate="label" type="text" sortOrder="3" showInDefault="1"
+        </section>
+        <section id="import_config">
+            <group id="import_role" translate="label" type="text" sortOrder="40" showInDefault="1"
                    showInWebsite="0" showInStore="0">
                 <depends>
                     <field id="leanswift_login/general/enable_login">1</field>
                 </depends>
-                <label>Import Roles</label>
+                <label>Import User Roles</label>
                 <field id="initial_load" type="button" sortOrder="9" showInDefault="1" showInWebsite="0"
                        showInStore="0">
                     <label>Roles Initial Load</label>

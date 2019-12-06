@@ -24,6 +24,8 @@
 
 namespace LeanSwift\Login\Controller\Adminhtml\Ion;
 
+use LeanSwift\Econnect\Helper\Erpapi;
+use LeanSwift\Login\Helper\Constant;
 use LeanSwift\Login\Helper\Data;
 use LeanSwift\Login\Model\ResourceModel\Userrole;
 use Magento\Backend\App\Action;
@@ -47,6 +49,10 @@ class Import extends Action
      * @var Userrole
      */
     protected $roleResource;
+    /**
+     * @var Erpapi|Data
+     */
+    protected $econnectErpAPI;
 
     /**
      * Import constructor.
@@ -58,12 +64,13 @@ class Import extends Action
      */
     public function __construct(
         Context $context,
-        Registry $coreRegistry,
-        Data $erpapi,
-        Userrole $userrole
+        Data $data,
+        Userrole $userrole,
+        Erpapi $erpapi
     ) {
-        $this->helper = $erpapi;
+        $this->helper = $data;
         $this->roleResource = $userrole;
+        $this->econnectErpAPI = $erpapi;
         parent::__construct($context);
     }
 
@@ -74,20 +81,23 @@ class Import extends Action
      */
     public function execute()
     {
-        $roles = $this->helper->erpapi()->getRolesList();
-        $rolesInfo = $this->helper->erpapi()->getRolesInfo();
-        $message = false;
+        $erpApiObject = $this->helper->erpapi();
+        $roles = $erpApiObject->getRolesList();
+        $rolesInfo = $erpApiObject->getRolesInfo();
+        $flag = false;
         if ($roles) {
-            $message = $this->roleResource->updateRoles($roles);
+            $flag = $this->roleResource->updateRoles($roles);
         }
-        if ($rolesInfo && $message) {
-            $message = $this->roleResource->updateRoleInfo($rolesInfo);
+        if ($rolesInfo && $flag) {
+            $flag = $this->roleResource->updateRoleInfo($rolesInfo);
         }
+        $message = $this->econnectErpAPI->getInitialLoadMessage(Constant::TYPE);
         $resultRedirect = $this->resultRedirectFactory->create();
-        if ($message == true) {
-            $this->messageManager->addSuccess(__('User and Role import was successful!'));
+        if ($flag) {
+            $this->roleResource->updateImportHistory();
+            $this->messageManager->addSuccess($message);
         } else {
-            $this->messageManager->addErrorMessage(__('User and Role import was failed!'));
+            $this->messageManager->addErrorMessage('User and Role import was failed!');
         }
         return $resultRedirect->setUrl($this->_redirect->getRefererUrl());
     }

@@ -33,9 +33,7 @@ use LeanSwift\Econnect\Helper\Constant as EconnectConstant;
  */
 class Constant extends EconnectConstant
 {
-
-
+    const TYPE = 'M3userRole';
     const SyncLSUserRoles = 'SyncLSUserRoles';
-
     const LSUserRoles = 'LSUserRoles';
 }

@@ -27,4 +27,7 @@
         <plugin name="LeanSwift_Login::CustomerPlugin"
                 type="LeanSwift\Login\Plugin\Customer\AuthPlugin" sortOrder="100"/>
     </type>
+    <type name="LeanSwift\Econnect\Helper\Erpapi">
+        <plugin name="login-erpapi-plugin" type="LeanSwift\Login\Plugin\ErpapiPlugin" sortOrder="2"/>
+    </type>
 </config>
