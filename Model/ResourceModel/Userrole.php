@@ -25,7 +25,10 @@
 namespace LeanSwift\Login\Model\ResourceModel;
 
 use Exception;
+use LeanSwift\Econnect\Model\Importhistory;
+use LeanSwift\Login\Helper\Constant;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
+use Magento\Framework\Model\ResourceModel\Db\Context;
 
 /**
  * Class Userrole
@@ -34,6 +37,20 @@ use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
  */
 class Userrole extends AbstractDb
 {
+    /**
+     * @var Importhistory
+     */
+    protected $importHistory;
+
+    public function __construct(
+        Context $context,
+        Importhistory $importhistory,
+        $connectionName = null
+    )
+    {
+        $this->importHistory = $importhistory;
+        parent::__construct($context, $connectionName);
+    }
 
     /**
      * Initialize the object
@@ -70,7 +87,6 @@ class Userrole extends AbstractDb
         } catch (Exception $e) {
             $flag = false;
         }
-
         return $flag;
     }
 
@@ -139,5 +155,22 @@ class Userrole extends AbstractDb
         }
 
         return $adapter->fetchRow($select);
+    }
+
+    /**
+     * @return bool
+     */
+    public function updateImportHistory()
+    {
+        $importHistoryData['entity_name'] = Constant::TYPE;
+        $importHistoryData['updated_at'] = date("Y-m-d H:i:s");
+        $importHistoryData['number_of_actions'] = 0;
+        $importHistoryData['search_query'] = 'N/A';
+        $importHistoryData['job_id'] = 'N/A';
+        try {
+            $this->importHistory->setData($importHistoryData)->save();
+        } catch (Exception $e) {
+            return false;
+        }
     }
 }
