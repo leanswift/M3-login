@@ -28,7 +28,12 @@ use Closure;
 use LeanSwift\Login\Helper\AuthClient;
 use Magento\Customer\Model\AccountManagement;
 use Magento\Framework\App\ResponseFactory;
+use Magento\Framework\Exception\AuthenticationException;
+use Magento\Framework\Exception\InvalidEmailOrPasswordException;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
+use Magento\Setup\Exception;
 use Psr\Log\LoggerInterface;
 
 
@@ -54,6 +59,10 @@ final class AuthPlugin
      * @var AuthClient
      */
     private $auth;
+    /**
+     * @var ManagerInterface
+     */
+    protected $messageManager;
 
     /**
      * AuthPlugin constructor.
@@ -65,12 +74,14 @@ final class AuthPlugin
         LoggerInterface $logger,
         ResponseFactory $responseFactory,
         AuthClient $authClient,
-        SessionManagerInterface $coreSession
+        SessionManagerInterface $coreSession,
+        ManagerInterface $manager
     ) {
         $this->logger = $logger;
         $this->responseFactory = $responseFactory;
         $this->auth = $authClient;
         $this->_coreSession = $coreSession;
+        $this->messageManager = $manager;
     }
 
     /**
@@ -94,7 +105,14 @@ final class AuthPlugin
                 $this->_coreSession->setEmail($username);
                 $flag = false;
                 $redirectionUrl = $this->auth->getOauthLink();
-                $this->responseFactory->create()->setRedirect($redirectionUrl)->sendResponse();
+                if($redirectionUrl)
+                {
+                    $this->responseFactory->create()->setRedirect($redirectionUrl)->sendResponse();
+                }
+                else {
+                    $this->logger->info('Authorization URL is not configured');
+                    throw new AuthenticationException(__('Authentication Failed'));
+                }
             }
         }
         if ($flag) {

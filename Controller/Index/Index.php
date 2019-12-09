@@ -111,7 +111,6 @@ class Index extends Action
                 }
             }
         }
-
         $this->_redirect(self::PATH);
     }
 
