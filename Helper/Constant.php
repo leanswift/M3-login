@@ -33,7 +33,7 @@ use LeanSwift\Econnect\Helper\Constant as EconnectConstant;
  */
 class Constant extends EconnectConstant
 {
-    const TYPE = 'M3userRole';
+    const TYPE = 'M3 User Roles';
     const SyncLSUserRoles = 'SyncLSUserRoles';
     const LSUserRoles = 'LSUserRoles';
     const LOGGER_NAME = '/var/log/m3Login.log';
