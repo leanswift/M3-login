@@ -30,4 +30,27 @@
     <type name="LeanSwift\Econnect\Helper\Erpapi">
         <plugin name="login-erpapi-plugin" type="LeanSwift\Login\Plugin\ErpapiPlugin" sortOrder="2"/>
     </type>
+
+    <virtualType name="M3LoginHandler" type="Magento\Framework\Logger\Handler\Base">
+        <arguments>
+            <argument name="fileName" xsi:type="const">LeanSwift\Login\Helper\Constant::LOGGER_NAME</argument>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="M3LoginLogger" type="Monolog\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">M3LoginLogger</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">M3LoginHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <type name="LeanSwift\Login\Model\Api\Adapter">
+        <arguments>
+            <argument name="logger" xsi:type="object">M3LoginLogger</argument>
+        </arguments>
+    </type>
+
+
 </config>
