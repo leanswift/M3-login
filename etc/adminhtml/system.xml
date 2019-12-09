@@ -27,7 +27,7 @@
         <section id="leanswift_login" translate="label" sortOrder="200" showInDefault="1" showInWebsite="1"
                  showInStore="1">
             <class>separator-top</class>
-            <label>Login</label>
+            <label>M3 Login</label>
             <tab>leanswift</tab>
             <resource>LeanSwift_Login::leanswift_login</resource>
             <group id="general" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0"
