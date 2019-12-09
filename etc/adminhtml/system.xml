@@ -47,21 +47,12 @@
                     </depends>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="mingle_url" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="0"
-                       showInStore="0">
-                    <label>Mingle URL</label>
-                    <validate>validate-url</validate>
-                    <depends>
-                        <field id="enable_login">1</field>
-                    </depends>
-                    <comment><![CDATA[ URL for accessing Mingle API]]></comment>
-                </field>
                 <field id="domain_name" translate="label" type="text" sortOrder="5" showInDefault="1">
-                    <label>Domain Name</label>
+                    <label>Internal user email domain(s)</label>
                     <depends>
                         <field id="enable_login">1</field>
                     </depends>
-                    <comment><![CDATA[Enter the Infor domain names with comma seperated]]></comment>
+                    <comment><![CDATA[Comma-separated list of email domains]]></comment>
                 </field>
             </group>
             <group id="authentication" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="0"
@@ -70,9 +61,15 @@
                 <depends>
                     <field id="leanswift_login/general/enable_login">1</field>
                 </depends>
-                <field id="service_url" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0"
+                <field id="mingle_url" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0"
                        showInStore="0">
-                    <label>Service URL</label>
+                    <label>Service URL for Authorization</label>
+                    <validate>validate-url</validate>
+                    <comment><![CDATA[URL for accessing Mingle API]]></comment>
+                </field>
+                <field id="service_url" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="0"
+                       showInStore="0">
+                    <label>Service URL for Token</label>
                     <validate>validate-url</validate>
                     <comment><![CDATA[ URL to generate token for accessing ION API]]></comment>
                 </field>
@@ -93,12 +90,12 @@
                 <depends>
                     <field id="leanswift_login/general/enable_login">1</field>
                 </depends>
-                <label>Import User Roles</label>
+                <label>Import M3 User Roles</label>
                 <field id="initial_load" type="button" sortOrder="9" showInDefault="1" showInWebsite="0"
                        showInStore="0">
-                    <label>Roles Initial Load</label>
+                    <label>M3 Roles &amp; Functions</label>
                     <frontend_model>LeanSwift\Login\Block\Backend\Roles\Ion\Initial</frontend_model>
-                    <comment><![CDATA[Initial load user role data from M3.]]></comment>
+                    <comment><![CDATA[Initial load M3 Roles and associated security options (functions) from M3]]></comment>
                 </field>
             </group>
         </section>

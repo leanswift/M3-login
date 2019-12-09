@@ -28,7 +28,7 @@ use LeanSwift\Econnect\Helper\Secure;
 
 class AuthClient extends Secure
 {
-    const XML_PATH_WEB_MINGLE_URL = 'leanswift_login/general/mingle_url';
+    const XML_PATH_WEB_MINGLE_URL = 'leanswift_login/authentication/mingle_url';
 
     const XML_PATH_WEB_SERVICE_URL = 'leanswift_login/authentication/service_url';
 

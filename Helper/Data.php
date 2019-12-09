@@ -29,6 +29,9 @@ use LeanSwift\Login\Model\Authentication;
 
 class Data extends Ion
 {
+    const VERSION_LABEL = 'M3 LOGIN';
+    const VERSION = '1.0.0';
+
     private $authClient;
 
     private $authModel;

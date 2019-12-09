@@ -52,5 +52,15 @@
         </arguments>
     </type>
 
+    <type name="LeanSwift\Econnect\Helper\Version">
+        <arguments>
+            <argument name="config" xsi:type="array">
+                <item name="login" xsi:type="array">
+                    <item name="label" xsi:type="const">LeanSwift\Login\Helper\Data::VERSION_LABEL</item>
+                    <item name="version" xsi:type="const">LeanSwift\Login\Helper\Data::VERSION</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
 
 </config>
