@@ -30,8 +30,11 @@ use LeanSwift\Econnect\Helper\Data;
 use LeanSwift\Econnect\Helper\Ion;
 use LeanSwift\Econnect\Helper\Secure;
 use LeanSwift\Login\Helper\AuthClient;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Logger\Monolog;
 use Magento\Framework\Model\AbstractModel;
+use Monolog\Logger;
 use Zend_Http_Client;
 use Zend_Http_Client_Exception;
 
@@ -78,6 +81,15 @@ class Adapter extends AbstractModel
      * @var Authentication
      */
     protected $auth;
+    /**
+     * @var Logger
+     */
+    protected $logger;
+    /**
+     * @var ScopeConfigInterface
+     */
+    protected $scopeConfig;
+    protected $isLogEnabled = '';
 
     /**
      * Adapter constructor.
@@ -86,12 +98,21 @@ class Adapter extends AbstractModel
      * @param Secure $helperSecure
      * @param Ion    $ion
      */
-    public function __construct(Data $helperData, Secure $helperSecure, Ion $ion, AuthClient $authClient)
+    public function __construct(
+        Data $helperData,
+        Secure $helperSecure,
+        Ion $ion,
+        AuthClient $authClient,
+        ScopeConfigInterface $scopeConfig,
+        Logger $logger
+    )
     {
         $this->_helperData = $helperData;
         $this->_ionHelper = $ion;
         $this->_helperSecure = $helperSecure;
         $this->helperAuth = $authClient;
+        $this->logger = $logger;
+        $this->scopeConfig = $scopeConfig;
     }
 
     /**
@@ -112,7 +133,7 @@ class Adapter extends AbstractModel
         $responseBody = null;
         $serviceUrl = $this->_ionHelper->getM3ServiceUrl();
         if (empty($serviceUrl)) {
-            $this->_ionHelper->writeLog('Service Url Empty!');
+            $this->writeLog('Service Url Empty!');
             return false;
         }
 
@@ -142,8 +163,8 @@ class Adapter extends AbstractModel
                 //Case to handle invalid access token
                 if ($response && $response->getStatus() == 401) {
                     //Initialize new access token
-                    $this->_ionHelper->writeLog('Access token Invalid!', false);
-                    $this->_ionHelper->writeLog('Initialise new access token !', false);
+                    $this->writeLog('Access token Invalid!');
+                    $this->writeLog('Initialise new access token !');
                     $customer = $this->_helperData->getCustomerSession();
                     if ($customer->isLoggedIn()) {
                         $accessToken = $this->helperAuth->getRequestToken();
@@ -151,29 +172,24 @@ class Adapter extends AbstractModel
                         $this->_helperSecure->createAccessToken($storeId);
                         $accessToken = $this->_helperSecure->getAccessToken();
                     }
-
-
                     if ($accessToken == '' || $accessToken == null) {
                         $msg = 'Please Check Oauth credentials, there might be a problem on creating access token !';
-                        $this->_ionHelper->writeLog($msg);
+                        $this->writeLog($msg);
                         return null;
                     }
-
                     $client = $this->setAccessToken();
                     $client->setUri($serviceUrl);
                     $client->setRawData($data, 'application/json');
                     $client->setConfig(['maxredirects' => 5, 'timeout' => $timeout, 'keepalive' => true]);
                     $response = $client->request('POST');
                 }
-
                 $afterTime = microtime(true);
                 $rTime = $afterTime - $beforeTime;
                 $responseBody = null;
                 $errorMessage = false;
                 if ($response && $response->getStatus() == 200) {
                     $responseBody = $response->getBody();
-                    $this->_ionHelper->writeLog('ION Response : ' . $responseBody);
-
+                    //$this->writeLog('ION Response : ' . $responseBody);
                     //Converting the response format
                     $parsedResult = json_decode($responseBody, true);
                     if (is_array($parsedResult) && isset($parsedResult[Constant::RESULTS])) {
@@ -208,8 +224,13 @@ class Adapter extends AbstractModel
                     ];
                     $responseBody = json_encode($responseBody);
                 }
-
-                $this->_ionHelper->writeLog($transaction . ' Transaction Data:' . $data . 'Response: ' . $responseBody
+                if(is_array($transaction)) {
+                    $transactionString =  implode(',', $transaction);
+                }
+                else {
+                    $transactionString = $transaction;
+                }
+                $this->writeLog($transactionString . ' Transaction Data:' . $data . 'Response: ' . $responseBody
                     . '-' . $errorMessage . "\r\n"
                     . 'Response Time in secs:'
                     . $rTime);
@@ -220,7 +241,7 @@ class Adapter extends AbstractModel
                 Constant::KEY_ERROR => $e->getMessage(),
                 Constant::KEY_CODE  => $e->getCode(),
             ];
-            $this->_ionHelper->writeLog('Service Link Error - eConnect Transaction Related' . "\r\n"
+            $this->writeLog('Service Link Error - eConnect Transaction Related' . "\r\n"
                 . json_encode($debugData, true));
         }
 
@@ -300,5 +321,22 @@ class Adapter extends AbstractModel
         );
 
         return $client;
+    }
+
+    /**
+     * Write message to Log
+     *
+     * @param $message
+     */
+    public function writeLog($message)
+    {
+        if($this->isLogEnabled == '')
+        {
+            $this->isLogEnabled = $this->scopeConfig->getValue(\LeanSwift\Login\Helper\Constant::LOGGER_ENABLE_PATH);
+        }
+        if($this->isLogEnabled == 1)
+        {
+            $this->logger->info($message);
+        }
     }
 }

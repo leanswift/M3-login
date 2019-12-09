@@ -39,7 +39,15 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Enable option to disable magento product]]></comment>
                 </field>
-                <field id="mingle_url" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0"
+                <field id="log" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="0"
+                       showInStore="0">
+                    <label>Debug/log data</label>
+                    <depends>
+                        <field id="enable_login">1</field>
+                    </depends>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="mingle_url" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="0"
                        showInStore="0">
                     <label>Mingle URL</label>
                     <validate>validate-url</validate>

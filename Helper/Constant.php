@@ -36,4 +36,6 @@ class Constant extends EconnectConstant
     const TYPE = 'M3userRole';
     const SyncLSUserRoles = 'SyncLSUserRoles';
     const LSUserRoles = 'LSUserRoles';
+    const LOGGER_NAME = '/var/log/m3Login.log';
+    const LOGGER_ENABLE_PATH = 'leanswift_login/general/log';
 }
