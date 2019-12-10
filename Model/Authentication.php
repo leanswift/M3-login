@@ -27,6 +27,7 @@ namespace LeanSwift\Login\Model;
 use Exception;
 use LeanSwift\Login\Helper\AuthClient;
 use LeanSwift\Login\Helper\Constant;
+use LeanSwift\Login\Helper\Logger;
 use LeanSwift\Login\Model\Api\Adapter;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Model\CustomerFactory;
@@ -53,7 +54,7 @@ class Authentication
     /**
      * @var Adapter
      */
-    private $erpApi;
+    private $logger;
 
     /**
      * Authentication constructor.
@@ -69,13 +70,13 @@ class Authentication
         CustomerFactory $customerFactory,
         CustomerRepositoryInterface $customerRepository,
         SessionManagerInterface $coreSession,
-        Adapter $adapter
+        Logger $logger
     ) {
         $this->auth = $authClient;
         $this->customerFactory = $customerFactory;
         $this->customerRepo = $customerRepository;
         $this->_coreSession = $coreSession;
-        $this->erpApi = $adapter;
+        $this->logger = $logger;
     }
 
     public function generateToken($code, $timeout=60)
@@ -84,11 +85,18 @@ class Authentication
         $client = $this->auth->getClient();
         $url = $this->auth->getTokenLink();
         if(!$url) {
+            $this->logger->writeLog('Service URL for Token is not configured');
             return '';
         }
         $client->setUri($url);
-        $credentials['client_id'] = $this->auth->getClientId();
-        $credentials['client_secret'] = $this->auth->getClientSecret();
+        $clientId = $this->auth->getClientId();
+        $clientSecret = $this->auth->getClientSecret();
+        if(!$clientId || !$clientSecret) {
+            $this->logger->writeLog('Please Check Oauth credentials, there might be a problem on creating access token !');
+            return '';
+        }
+        $credentials['client_id'] = $clientId;
+        $credentials['client_secret'] = $clientSecret;
         $credentials['grant_type'] = 'authorization_code';
         $credentials['code'] = $code;
         $client->setParameterPost($credentials);
@@ -100,13 +108,13 @@ class Authentication
                 $responseBody = json_decode($parsedResult, true);
                 $accessToken = $responseBody['access_token'];
                 $refreshToken = $responseBody['refresh_token'];
-                $this->erpApi->writeLog('New access token : ' . $accessToken);
+                $this->logger->writeLog('New access token : ' . $accessToken);
                 $this->_coreSession->start();
                 $this->_coreSession->setAccessToken($accessToken);
                 $this->_coreSession->setRefreshToken($refreshToken);
             }
         } catch (Exception $e) {
-            $this->erpApi->writeLog('API request failed' . $e->getMessage());
+            $this->logger->writeLog('API request failed' . $e->getMessage());
         }
         return $accessToken;
     }
@@ -224,11 +232,11 @@ class Authentication
                 $rTime = $afterTime - $beforeTime;
                 $responseBody = json_decode($parsedResult, true);
             }
-            $this->erpApi->writeLog($params['method'] . ' Transaction Data:' . $data . 'Response: ' . $parsedResult
+            $this->logger->writeLog($params['method'] . ' Transaction Data:' . $data . 'Response: ' . $parsedResult
                 . 'Response Time in secs:'
                 . $rTime);
         } catch (Exception $e) {
-            $this->erpApi->writeLog($params['method'] . ' Transaction Data:' . 'API request failed - ' . $e->getMessage());
+            $this->logger->writeLog($params['method'] . ' Transaction Data:' . 'API request failed - ' . $e->getMessage());
         }
         return $responseBody;
     }
@@ -238,9 +246,17 @@ class Authentication
         $accessToken = '';
         $client = $this->auth->getClient();
         $url = $this->auth->getOauthLink();
+        if(!$url) {
+            return '';
+        }
         $client->setUri($url);
-        $credentials['client_id'] = $this->auth->getClientId();
-        $credentials['client_secret'] = $this->auth->getClientSecret();
+        $clientId = $this->auth->getClientId();
+        $clientSecret = $this->auth->getClientSecret();
+        if(!$clientId || !$clientSecret) {
+            return '';
+        }
+        $credentials['client_id'] = $clientId;
+        $credentials['client_secret'] = $clientSecret;
         $credentials['grant_type'] = 'refresh_token';
         $credentials['refresh_token'] = $this->_coreSession->getRefreshToken();
         $client->setParameterPost($credentials);
@@ -252,12 +268,12 @@ class Authentication
                 $responseBody = json_decode($parsedResult, true);
                 $accessToken = $responseBody['access_token'];
                 $refreshToken = $responseBody['refresh_token'];
-                $this->erpApi->writeLog('New access token : ' . $accessToken);
+                $this->logger->writeLog('New access token : ' . $accessToken);
                 $this->_coreSession->setAccessToken($accessToken);
                 $this->_coreSession->setRefreshToken($refreshToken);
             }
         } catch (Exception $e) {
-            $this->erpApi->writeLog('API request failed' . $e->getMessage());
+            $this->logger->writeLog('API request failed' . $e->getMessage());
             return false;
         }
         return $accessToken;

@@ -24,53 +24,46 @@
 
 namespace LeanSwift\Login\Helper;
 
-use LeanSwift\Login\Model\Authentication;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 
-class Data extends AbstractHelper
+/**
+ * Class Logger
+ * @package LeanSwift\Login\Helper
+ */
+class Logger extends AbstractHelper
 {
-    const VERSION_LABEL = 'M3 LOGIN';
-    const VERSION = '1.0.0';
+    protected $isLogEnabled;
+    /**
+     * @var \Monolog\Logger
+     */
+    protected $logger;
 
-    private $authClient;
-
-    private $authModel;
-
-    private $erpApi;
-
+    /**
+     * Logger constructor.
+     * @param Context $context
+     * @param \Monolog\Logger $logger
+     */
     public function __construct(
         Context $context,
-        Erpapi $erpapi,
-        Authentication $authentication
-    ) {
-        $this->authModel = $authentication;
-        $this->erpApi = $erpapi;
+        \Monolog\Logger $logger
+    ){
+        $this->logger = $logger;
         parent::__construct($context);
     }
 
-    public function authModel()
+    /**
+     * @param $message
+     */
+    public function writeLog($message)
     {
-        return $this->authModel;
-    }
-
-    public function getRolesList()
-    {
-        return $this->erpapi()->userRoleModel()->getRolesList();
-    }
-
-    public function erpapi()
-    {
-        return $this->erpApi;
-    }
-
-    public function getFuncByRoles($role, $cono = false, $divi = false)
-    {
-        return $this->erpapi()->userRoleModel()->getFuncByRoles($role, $cono, $divi);
-    }
-
-    public function getRolesByUser($username)
-    {
-        return $this->erpapi()->userRoleModel()->getRolesByUser($username);
+        if($this->isLogEnabled == '')
+        {
+            $this->isLogEnabled = $this->scopeConfig->getValue(Constant::LOGGER_ENABLE_PATH);
+        }
+        if($this->isLogEnabled == 1)
+        {
+            $this->logger->info($message);
+        }
     }
 }
