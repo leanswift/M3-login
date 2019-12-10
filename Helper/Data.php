@@ -24,10 +24,12 @@
 
 namespace LeanSwift\Login\Helper;
 
-use LeanSwift\Econnect\Helper\Ion;
 use LeanSwift\Login\Model\Authentication;
+use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\App\Helper\Context;
+use Monolog\Logger;
 
-class Data extends Ion
+class Data extends AbstractHelper
 {
     const VERSION_LABEL = 'M3 LOGIN';
     const VERSION = '1.0.0';
@@ -37,15 +39,24 @@ class Data extends Ion
     private $authModel;
 
     private $erpApi;
+    /**
+     * @var Logger
+     */
+    protected $logger;
+    protected $isLogEnabled;
 
     public function __construct(
+        Context $context,
         Erpapi $erpapi,
         Authentication $authentication,
-        AuthClient $authClient
+        AuthClient $authClient,
+        Logger $logger
     ) {
         $this->authModel = $authentication;
         $this->authClient = $authClient;
         $this->erpApi = $erpapi;
+        $this->logger = $logger;
+        parent::__construct($context);
     }
 
     public function authModel()
@@ -76,5 +87,20 @@ class Data extends Ion
     public function getRolesByUser($username)
     {
         return $this->erpapi()->userRoleModel()->getRolesByUser($username);
+    }
+
+    /**
+     * @param $message
+     */
+    public function writeLogInfo($message)
+    {
+        if($this->isLogEnabled == '')
+        {
+            $this->isLogEnabled = $this->scopeConfig->getValue(Constant::LOGGER_ENABLE_PATH);
+        }
+        if($this->isLogEnabled == 1)
+        {
+            $this->logger->info($message);
+        }
     }
 }

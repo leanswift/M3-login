@@ -119,6 +119,9 @@ class AuthClient extends Secure
     public function getTokenLink()
     {
         $tokenURL = $this->trimURL($this->scopeConfig->getValue(self::XML_PATH_WEB_SERVICE_URL));
+        if(!$tokenURL) {
+            return  '';
+        }
         $isCloud = $this->isCloudHost();
         //if it cloud environment
         if ($isCloud) {
@@ -133,8 +136,7 @@ class AuthClient extends Secure
 
     public function getMingleLink()
     {
-        $link = $this->scopeConfig->getValue(self::XML_PATH_WEB_MINGLE_URL);
-        return $link;
+        return $this->trimURL($this->scopeConfig->getValue(self::XML_PATH_WEB_MINGLE_URL));
     }
 
     public function getIonLink()

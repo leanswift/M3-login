@@ -88,7 +88,6 @@ class Index extends Action
         $this->customerSession = $customerSession;
         $this->_coreSession = $coreSession;
         $this->storeManager = $storeManager;
-
         parent::__construct($context);
     }
 
@@ -101,14 +100,28 @@ class Index extends Action
         if ($info && array_key_exists('code', $info)) {
             $code = $info['code'];
             $accessToken = $this->helper->authModel()->generateToken($code);
-            $userDetails = $this->helper->authModel()->getUserName($accessToken);
-            if (array_key_exists('username', $userDetails)) {
-                $email = $userDetails['email'];
-                try {
-                    $this->logincustomer($email);
-                } catch (Exception $e) {
-                    $this->createCustomer($userDetails);
+            if($accessToken)
+            {
+                $userDetails = $this->helper->authModel()->getUserName($accessToken);
+                if(!empty($userDetails))
+                {
+                    if (array_key_exists('username', $userDetails)) {
+                        $email = $userDetails['email'];
+                        try {
+                            $this->logincustomer($email);
+                        } catch (Exception $e) {
+                            $this->createCustomer($userDetails);
+                        }
+                    }
                 }
+                else {
+                    $this->helper->writeLogInfo('Service URL for Authorization is not configured');
+                    $this->messageManager->addErrorMessage('Authentication failed');
+                }
+            }
+            else {
+                $this->helper->writeLogInfo('Service URL for Token is not configured');
+                $this->messageManager->addErrorMessage('Authentication failed');
             }
         }
         $this->_redirect(self::PATH);
@@ -119,7 +132,6 @@ class Index extends Action
         $customerRepo = $this->customerRepo->get($email);                    //load with email
         $customer = $this->customerFactory->create()->load($customerRepo->getId());     //get the customer model by id
         $this->customerSession->setCustomerAsLoggedIn($customer);
-
     }
 
     public function createCustomer($userDetailList)

@@ -26,6 +26,7 @@ namespace LeanSwift\Login\Plugin\Customer;
 
 use Closure;
 use LeanSwift\Login\Helper\AuthClient;
+use LeanSwift\Login\Helper\Data;
 use Magento\Customer\Model\AccountManagement;
 use Magento\Framework\App\ResponseFactory;
 use Magento\Framework\Exception\AuthenticationException;
@@ -63,6 +64,10 @@ final class AuthPlugin
      * @var ManagerInterface
      */
     protected $messageManager;
+    /**
+     * @var Data
+     */
+    protected $helper;
 
     /**
      * AuthPlugin constructor.
@@ -75,13 +80,15 @@ final class AuthPlugin
         ResponseFactory $responseFactory,
         AuthClient $authClient,
         SessionManagerInterface $coreSession,
-        ManagerInterface $manager
+        ManagerInterface $manager,
+        Data $helper
     ) {
         $this->logger = $logger;
         $this->responseFactory = $responseFactory;
         $this->auth = $authClient;
         $this->_coreSession = $coreSession;
         $this->messageManager = $manager;
+        $this->helper = $helper;
     }
 
     /**
@@ -110,8 +117,8 @@ final class AuthPlugin
                     $this->responseFactory->create()->setRedirect($redirectionUrl)->sendResponse();
                 }
                 else {
-                    $this->logger->info('Authorization URL is not configured');
-                    throw new AuthenticationException(__('Authentication Failed'));
+                    $this->helper->writeLogInfo('Service URL for Token is not configured');
+                    throw new LocalizedException(__('Authentication Failed'));
                 }
             }
         }

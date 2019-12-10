@@ -38,4 +38,7 @@ class Constant extends EconnectConstant
     const LSUserRoles = 'LSUserRoles';
     const LOGGER_NAME = '/var/log/m3Login.log';
     const LOGGER_ENABLE_PATH = 'leanswift_login/general/log';
+    const MINGLE_USER_DETAIL = '/api/v1/mingle/go/User/Detail';
+    const GET_USER_BY_EUID = '/MNS150MI/GetUserByEuid?EUID=';
+    const USID = 'USID';
 }
