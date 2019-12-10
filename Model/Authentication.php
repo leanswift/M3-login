@@ -24,7 +24,9 @@
 
 namespace LeanSwift\Login\Model;
 
+use Exception;
 use LeanSwift\Login\Helper\AuthClient;
+use LeanSwift\Login\Helper\Constant;
 use LeanSwift\Login\Model\Api\Adapter;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Model\CustomerFactory;
@@ -76,18 +78,21 @@ class Authentication
         $this->erpApi = $adapter;
     }
 
-    public function generateToken($code)
+    public function generateToken($code, $timeout=60)
     {
         $accessToken = '';
         $client = $this->auth->getClient();
         $url = $this->auth->getTokenLink();
+        if(!$url) {
+            return '';
+        }
         $client->setUri($url);
         $credentials['client_id'] = $this->auth->getClientId();
         $credentials['client_secret'] = $this->auth->getClientSecret();
         $credentials['grant_type'] = 'authorization_code';
         $credentials['code'] = $code;
         $client->setParameterPost($credentials);
-        $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);
+        $client->setConfig(['maxredirects' => 3, 'timeout' => $timeout]);
         try {
             $response = $client->request('POST');
             if ($response->getStatus() == 200) {
@@ -95,47 +100,32 @@ class Authentication
                 $responseBody = json_decode($parsedResult, true);
                 $accessToken = $responseBody['access_token'];
                 $refreshToken = $responseBody['refresh_token'];
-                $this->auth->logger()->writeLog('New access token : ' . $accessToken);
+                $this->erpApi->writeLog('New access token : ' . $accessToken);
                 $this->_coreSession->start();
                 $this->_coreSession->setAccessToken($accessToken);
                 $this->_coreSession->setRefreshToken($refreshToken);
             }
         } catch (Exception $e) {
-            $this->auth->logger()->writeLog('API request failed' . $e->getMessage());
+            $this->erpApi->writeLog('API request failed' . $e->getMessage());
         }
-
         return $accessToken;
     }
 
+    /**
+     * @param $accessToken
+     * @return array|string
+     */
     public function getUserName($accessToken)
     {
-        if (!$accessToken) {
-            return false;
-        }
-        $client = $this->auth->getClient();
+        $customerData = [];
         $mingleUrl = $this->auth->getMingleLink();
-        $url = $mingleUrl . '/api/v1/mingle/go/User/Detail';
-        $client->setHeaders(
-            ['Authorization' => 'Bearer ' . $accessToken]
-        );
-        $client->setUri($url);
-        $client->setRawData('', 'application/json');
-        $client->setConfig(['maxredirects' => 3, 'timeout' => 20, 'keepalive' => true]);
-        $userDetailList = false;
-        $username = false;
-        try {
-            $response = $client->request('POST');
-            if ($response->getStatus() == 200) {
-                $parsedResult = $response->getBody();
-                $responseBody = json_decode($parsedResult, true);
-                $userDetailList = $responseBody['UserDetailList'][0];
-            }
-        } catch (Exception $e) {
-            $this->auth->logger()->writeLog('API request failed' . $e->getMessage());
+        if(!$mingleUrl)
+        {
+          return '';
         }
-        if ($userDetailList) {
-            $username = false;
-            $usercode = $userDetailList['UserName'];
+        $userDetailList = $this->getUserDetails($mingleUrl, $accessToken);
+        if (!empty($userDetailList)) {
+            $userCode = $userDetailList['UserName'];
             $email = $userDetailList['Email'];
             $firstName = $userDetailList['FirstName'];
             $lastName = $userDetailList['LastName'];
@@ -143,50 +133,103 @@ class Authentication
                 'email'     => $email,
                 'firstname' => $firstName,
                 'lastname'  => $lastName,
+                'username'  => ''
             ];
-            $data['EUID'] = $usercode;
-            $url = $this->auth->getIonLink() . "/MNS150MI/GetUserByEuid?EUID=$usercode";
-            $method = '';
-            $recordInfo = $this->sendRequest('', $method, 20, $url, null, 'GET');
-            if ($recordInfo['results']) {
-                $username = $recordInfo['results'][0]['records'][0]['USID'];
-                $customerData['username'] = $username;
-            }
+            $data['EUID'] = $userCode;
+            $customerData['username'] = $this->getUserNameDetail($accessToken, $userCode);
         }
-
         return $customerData;
     }
 
-    public function sendRequest($data, $method, $timeout = 20, $url = null, $client = null, $requestType = 'POST')
+    /**
+     * @param $mingleUrl
+     * @param $accessToken
+     * @param string $method
+     * @return array
+     */
+    public function getUserDetails($mingleUrl, $accessToken, $method = Constant::MINGLE_USER_DETAIL)
+    {
+        $params['url'] = $mingleUrl;
+        $params['method'] = $method;
+        $params['token'] = $accessToken;
+        $responseBody = $this->sendRequest($params,'POST');
+        if(!empty($responseBody))
+        {
+            return $responseBody['UserDetailList'][0];
+        }
+        return [];
+    }
+
+    /**
+     * @param $token
+     * @param string $userCode
+     * @param string $method
+     * @param string $userId
+     * @return string
+     */
+    public function getUserNameDetail($token, $userCode='', $method = Constant::GET_USER_BY_EUID, $userId= Constant::USID)
+    {
+        $userName = '';
+        $params['url'] = $this->auth->getIonLink();
+        $params['token'] = $token;
+        if($userCode)
+        {
+            $params['method'] = $method.$userCode;
+        }
+        else {
+            $params['method'] = $method;
+        }
+        $recordInfo = $this->sendRequest($params);
+        if(!empty($recordInfo))
+        {
+            array_walk_recursive($recordInfo, function ($value, $key) use (&$userName, &$userId) {
+                if($key == $userId) {
+                    $userName = $value;
+                }
+            });
+        }
+        return $userName;
+    }
+
+    public function sendRequest($params, $requestType = 'GET', $timeout=20)
     {
         $responseBody = false;
-        if ($client == null) {
+        $beforeTime = microtime(true);
+        if (!isset($params['client'])) {
             $client = $this->auth->getClient();
         }
-        if ($url == null) {
-            $url = $this->auth->getIonLink() . $method;
+        else {
+            $client = $params['client'];
         }
-        $accessToken = $this->_coreSession->getAccessToken();
+        $url = $params['url'].$params['method'];
+        $accessToken = isset($params['token']) ? $params['token'] : $this->_coreSession->getAccessToken();
         $client->setUri($url);
         $client->setHeaders(
             ['Authorization' => 'Bearer ' . $accessToken]
         );
         $client->setHeaders(['accept' => 'application/json;charset=utf-8']);
-        if ($data) {
-            $data = json_encode($data);
+        if (isset($params['data'])) {
+            $data = json_encode($params['data']);
         }
-        $client->setRawData('{}', 'application/json');
+        else {
+            $data = '{}';
+        }
+        $client->setRawData($data, 'application/json');
         $client->setConfig(['maxredirects' => 3, 'timeout' => $timeout, 'keepalive' => true]);
         try {
             $response = $client->request($requestType);
+            $parsedResult = $response->getBody();
+            $afterTime = microtime(true);
             if ($response->getStatus() == 200) {
-                $parsedResult = $response->getBody();
+                $rTime = $afterTime - $beforeTime;
                 $responseBody = json_decode($parsedResult, true);
             }
+            $this->erpApi->writeLog($params['method'] . ' Transaction Data:' . $data . 'Response: ' . $parsedResult
+                . 'Response Time in secs:'
+                . $rTime);
         } catch (Exception $e) {
-            $this->auth->logger()->writeLog('API request failed' . $e->getMessage());
+            $this->erpApi->writeLog($params['method'] . ' Transaction Data:' . 'API request failed - ' . $e->getMessage());
         }
-
         return $responseBody;
     }
 
@@ -209,12 +252,13 @@ class Authentication
                 $responseBody = json_decode($parsedResult, true);
                 $accessToken = $responseBody['access_token'];
                 $refreshToken = $responseBody['refresh_token'];
-                $this->auth->logger()->writeLog('New access token : ' . $accessToken);
+                $this->erpApi->writeLog('New access token : ' . $accessToken);
                 $this->_coreSession->setAccessToken($accessToken);
                 $this->_coreSession->setRefreshToken($refreshToken);
             }
         } catch (Exception $e) {
-            return $this->auth->logger()->writeLog('API request failed' . $e->getMessage());
+            $this->erpApi->writeLog('API request failed' . $e->getMessage());
+            return false;
         }
         return $accessToken;
     }

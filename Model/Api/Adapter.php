@@ -338,5 +338,6 @@ class Adapter extends AbstractModel
         {
             $this->logger->info($message);
         }
+        return $this;
     }
 }

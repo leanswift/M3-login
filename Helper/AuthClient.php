@@ -28,6 +28,9 @@ use LeanSwift\Econnect\Helper\Secure;
 
 class AuthClient extends Secure
 {
+
+    protected $cloudMingleHost = 'mingle-sso.inforcloudsuite.com';
+
     const XML_PATH_WEB_MINGLE_URL = 'leanswift_login/authentication/mingle_url';
 
     const XML_PATH_WEB_SERVICE_URL = 'leanswift_login/authentication/service_url';
@@ -58,13 +61,40 @@ class AuthClient extends Secure
         ));
     }
 
-    public function getOauthLink()
+    /**
+     * @return bool
+     */
+    public function isCloudHost()
     {
         $link = $this->scopeConfig->getValue(self::XML_PATH_WEB_SERVICE_URL);
+        $host = parse_url($link, PHP_URL_HOST);
+        return $host == $this->getCloudMingleHost();
+    }
+
+    /**
+     * @return string
+     */
+    public function getOauthLink()
+    {
+        $oauthURL = $this->trimURL($this->scopeConfig->getValue(self::XML_PATH_WEB_SERVICE_URL));
+        if(!$oauthURL) {
+            return  '';
+        }
         $clientId = $this->getClientId();
-        $param = "as/authorization.oauth2?client_id=$clientId&response_type=code";
-        $oauthLink = $link . $param;
-        return $oauthLink;
+        $isCloud = $this->isCloudHost();
+        $returnUrl = $this->getReturnUrl();
+        //if it cloud environment
+        if ($isCloud) {
+            $authorize = '/as/authorization.oauth2';
+            $redirect = "redirect_url=$returnUrl";
+        }
+        //if it is on-premise environment
+        else {
+            $authorize = '/connect/authorize';
+            $redirect = "redirect_uri=$returnUrl";
+        }
+        $param = "$authorize?client_id=$clientId&response_type=code&$redirect";
+        return $oauthURL . $param;
     }
 
     /**
@@ -83,17 +113,30 @@ class AuthClient extends Secure
         );
     }
 
+    /**
+     * @return string
+     */
     public function getTokenLink()
     {
-        $link = $this->scopeConfig->getValue(self::XML_PATH_WEB_SERVICE_URL);
-        $oauthLink = $link . 'as/token.oauth2';
-        return $oauthLink;
+        $tokenURL = $this->trimURL($this->scopeConfig->getValue(self::XML_PATH_WEB_SERVICE_URL));
+        if(!$tokenURL) {
+            return  '';
+        }
+        $isCloud = $this->isCloudHost();
+        //if it cloud environment
+        if ($isCloud) {
+            $token = '/as/token.oauth2';
+        }
+        //if it is on-premise environment
+        else {
+            $token = '/connect/token';
+        }
+        return $tokenURL . $token;
     }
 
     public function getMingleLink()
     {
-        $link = $this->scopeConfig->getValue(self::XML_PATH_WEB_MINGLE_URL);
-        return $link;
+        return $this->trimURL($this->scopeConfig->getValue(self::XML_PATH_WEB_MINGLE_URL));
     }
 
     public function getIonLink()
@@ -148,5 +191,26 @@ class AuthClient extends Secure
             return $this->logger()->writeLog('API request failed' . $e->getMessage());
         }
         return $accessToken;
+    }
+
+    /**
+     * @return string
+     */
+    public function getReturnUrl()
+    {
+        return $this->_urlBuilder->getUrl('lslogin');
+    }
+
+    /**
+     * @return string
+     */
+    public function getCloudMingleHost()
+    {
+        return $this->cloudMingleHost;
+    }
+
+    public function trimURL($url)
+    {
+        return trim(rtrim($url, '/'));
     }
 }

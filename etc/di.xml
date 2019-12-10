@@ -46,7 +46,14 @@
         </arguments>
     </virtualType>
 
+    <!-- Injecting custom logger to desired class -->
     <type name="LeanSwift\Login\Model\Api\Adapter">
+        <arguments>
+            <argument name="logger" xsi:type="object">M3LoginLogger</argument>
+        </arguments>
+    </type>
+
+    <type name="LeanSwift\Login\Helper\Data">
         <arguments>
             <argument name="logger" xsi:type="object">M3LoginLogger</argument>
         </arguments>
