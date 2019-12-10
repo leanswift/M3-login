@@ -194,6 +194,7 @@ class Authentication
     public function sendRequest($params, $requestType = 'GET', $timeout=20)
     {
         $responseBody = false;
+        $beforeTime = microtime(true);
         if (!isset($params['client'])) {
             $client = $this->auth->getClient();
         }
@@ -217,13 +218,17 @@ class Authentication
         $client->setConfig(['maxredirects' => 3, 'timeout' => $timeout, 'keepalive' => true]);
         try {
             $response = $client->request($requestType);
+            $parsedResult = $response->getBody();
+            $afterTime = microtime(true);
             if ($response->getStatus() == 200) {
-                $parsedResult = $response->getBody();
-                $this->erpApi->writeLog($parsedResult);
+                $rTime = $afterTime - $beforeTime;
                 $responseBody = json_decode($parsedResult, true);
             }
+            $this->erpApi->writeLog($params['method'] . ' Transaction Data:' . $data . 'Response: ' . $parsedResult
+                . 'Response Time in secs:'
+                . $rTime);
         } catch (Exception $e) {
-            $this->erpApi->writeLog('API request failed' . $e->getMessage());
+            $this->erpApi->writeLog($params['method'] . ' Transaction Data:' . 'API request failed - ' . $e->getMessage());
         }
         return $responseBody;
     }
