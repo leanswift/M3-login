@@ -24,13 +24,15 @@
 
 namespace LeanSwift\Login\Helper;
 
-use LeanSwift\Econnect\Helper\Secure;
+use Exception;
+use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Framework\Message\ManagerInterface;
+use Magento\Framework\Session\SessionManagerInterface;
 
-class AuthClient extends Secure
+class AuthClient extends AbstractHelper
 {
-
-    protected $cloudMingleHost = 'mingle-sso.inforcloudsuite.com';
-
     const XML_PATH_WEB_MINGLE_URL = 'leanswift_login/authentication/mingle_url';
 
     const XML_PATH_WEB_SERVICE_URL = 'leanswift_login/authentication/service_url';
@@ -44,6 +46,77 @@ class AuthClient extends Secure
     const XML_PATH_DOMAIN = 'leanswift_login/general/domain_name';
 
     const XML_PATH_ENABLE = 'leanswift_login/general/enable_login';
+
+    protected $cloudMingleHost = 'mingle-sso.inforcloudsuite.com';
+    /**
+     * @var EncryptorInterface
+     */
+    protected $_encryptorInterface;
+    /**
+     * @var \LeanSwift\Econnect\Helper\Data
+     */
+    protected $_dataHelper;
+    /**
+     * @var SessionManagerInterface
+     */
+    protected $_session;
+    /**
+     * @var Data
+     */
+    protected $loginHelper;
+    /**
+     * @var ManagerInterface
+     */
+    protected $messageManager;
+    /**
+     * @var \Monolog\Logger
+     */
+    protected $logger;
+
+    public function __construct(
+        Context $context,
+        EncryptorInterface $encryptor,
+        \LeanSwift\Econnect\Helper\Data $helper,
+        SessionManagerInterface $coreSession,
+        ManagerInterface $manager,
+        Logger $logger
+    )
+    {
+        $this->_encryptorInterface = $encryptor;
+        $this->_dataHelper = $helper;
+        $this->_session = $coreSession;
+        $this->logger = $logger;
+        $this->messageManager = $manager;
+        parent::__construct($context);
+    }
+
+    /**
+     * @return \Zend_Http_Client
+     * @throws \Zend_Http_Client_Adapter_Exception
+     * @throws \Zend_Http_Client_Exception
+     */
+    public function getClient()
+    {
+        //Initialize Zend Client Object
+        $client = new \Zend_Http_Client();
+        $options = [
+            'ssl' => [
+                // Verify server side certificate,
+                // do not accept invalid or self-signed SSL certificates
+                'verify_peer'       => false,
+                'verify_peer_name'  => false,
+                'allow_self_signed' => false,
+                // Capture the peer's certificate
+                'capture_peer_cert' => false,
+            ],
+        ];
+
+        // Create an adapter object and attach it to the HTTP client
+        $adapter = new \Zend_Http_Client_Adapter_Socket();
+        $adapter->setStreamContext($options);
+        $client->setAdapter($adapter);
+        return $client;
+    }
 
     /**
      * Get Login API Client Secret
@@ -78,9 +151,14 @@ class AuthClient extends Secure
     {
         $oauthURL = $this->trimURL($this->scopeConfig->getValue(self::XML_PATH_WEB_SERVICE_URL));
         if(!$oauthURL) {
+            $this->logger->writeLog('Service URL for Token is not configured');
             return  '';
         }
         $clientId = $this->getClientId();
+        if(!$clientId) {
+            $this->logger->writeLog('Client ID is not configured');
+            return  '';
+        }
         $isCloud = $this->isCloudHost();
         $returnUrl = $this->getReturnUrl();
         //if it cloud environment
@@ -144,11 +222,6 @@ class AuthClient extends Secure
         return $this->scopeConfig->getValue(self::XML_PATH_ION_URL);
     }
 
-    public function logger()
-    {
-        return $this->_dataHelper;
-    }
-
     public function getDomain()
     {
         return $this->scopeConfig->getValue(self::XML_PATH_DOMAIN);
@@ -169,9 +242,17 @@ class AuthClient extends Secure
         $accessToken = '';
         $client = $this->getClient();
         $url = $this->getOauthLink();
+        if(!$url) {
+            return '';
+        }
         $client->setUri($url);
-        $credentials['client_id'] = $this->getClientId();
-        $credentials['client_secret'] = $this->getClientSecret();
+        $clientId = $this->getClientId();
+        $clientSecret = $this->getClientSecret();
+        if(!$clientId || !$clientSecret) {
+            return '';
+        }
+        $credentials['client_id'] = $clientId;
+        $credentials['client_secret'] = $clientSecret;
         $credentials['grant_type'] = 'refresh_token';
         $credentials['refresh_token'] = $this->_session->getRefreshToken();
         $client->setParameterPost($credentials);
@@ -183,12 +264,12 @@ class AuthClient extends Secure
                 $responseBody = json_decode($parsedResult, true);
                 $accessToken = $responseBody['access_token'];
                 $refreshToken = $responseBody['refresh_token'];
-                $this->logger()->writeLog('New access token : ' . $accessToken);
+                $this->logger->writeLogInfo('New access token : ' . $accessToken);
                 $this->_session->setAccessToken($accessToken);
                 $this->_session->setRefreshToken($refreshToken);
             }
         } catch (Exception $e) {
-            return $this->logger()->writeLog('API request failed' . $e->getMessage());
+            $this->logger->writeLog('API request failed' . $e->getMessage());
         }
         return $accessToken;
     }

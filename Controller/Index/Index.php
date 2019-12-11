@@ -26,6 +26,7 @@ namespace LeanSwift\Login\Controller\Index;
 
 use Exception;
 use LeanSwift\Login\Helper\Data;
+use LeanSwift\Login\Helper\Logger;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\Session;
@@ -65,6 +66,10 @@ class Index extends Action
      * @var StoreManagerInterface
      */
     private $storeManager;
+    /**
+     * @var Logger
+     */
+    protected $logger;
 
     /**
      * Index constructor.
@@ -80,7 +85,8 @@ class Index extends Action
         CustomerFactory $customerFactory,
         Session $customerSession,
         Data $data,
-        SessionManagerInterface $coreSession
+        SessionManagerInterface $coreSession,
+        Logger $logger
     ) {
         $this->helper = $data;
         $this->customerRepo = $customerRepo;
@@ -88,6 +94,7 @@ class Index extends Action
         $this->customerSession = $customerSession;
         $this->_coreSession = $coreSession;
         $this->storeManager = $storeManager;
+        $this->logger = $logger;
         parent::__construct($context);
     }
 
@@ -115,12 +122,11 @@ class Index extends Action
                     }
                 }
                 else {
-                    $this->helper->writeLogInfo('Service URL for Authorization is not configured');
+                    $this->logger->writeLog('Service URL for Authorization is not configured');
                     $this->messageManager->addErrorMessage('Authentication failed');
                 }
             }
             else {
-                $this->helper->writeLogInfo('Service URL for Token is not configured');
                 $this->messageManager->addErrorMessage('Authentication failed');
             }
         }
@@ -164,7 +170,7 @@ class Index extends Action
             $userInfo = $this->helper->erpapi()->getUserRoles($username);
             $this->helper->erpapi()->updateuser($username, $userInfo);
         } catch (Exception $e) {
-            $this->helper->writeLog($e->getMessage());
+            $this->logger->writeLog($e->getMessage());
         }
         //$customer->sendNewAccountEmail();
     }

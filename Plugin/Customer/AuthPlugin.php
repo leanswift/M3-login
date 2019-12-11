@@ -117,7 +117,6 @@ final class AuthPlugin
                     $this->responseFactory->create()->setRedirect($redirectionUrl)->sendResponse();
                 }
                 else {
-                    $this->helper->writeLogInfo('Service URL for Token is not configured');
                     throw new LocalizedException(__('Authentication Failed'));
                 }
             }

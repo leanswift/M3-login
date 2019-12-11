@@ -30,11 +30,10 @@ use LeanSwift\Econnect\Helper\Data;
 use LeanSwift\Econnect\Helper\Ion;
 use LeanSwift\Econnect\Helper\Secure;
 use LeanSwift\Login\Helper\AuthClient;
+use LeanSwift\Login\Helper\Logger;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Logger\Monolog;
 use Magento\Framework\Model\AbstractModel;
-use Monolog\Logger;
 use Zend_Http_Client;
 use Zend_Http_Client_Exception;
 
@@ -94,9 +93,12 @@ class Adapter extends AbstractModel
     /**
      * Adapter constructor.
      *
-     * @param Data   $helperData
+     * @param Data $helperData
      * @param Secure $helperSecure
-     * @param Ion    $ion
+     * @param Ion $ion
+     * @param AuthClient $authClient
+     * @param ScopeConfigInterface $scopeConfig
+     * @param Logger $logger
      */
     public function __construct(
         Data $helperData,
@@ -133,7 +135,7 @@ class Adapter extends AbstractModel
         $responseBody = null;
         $serviceUrl = $this->_ionHelper->getM3ServiceUrl();
         if (empty($serviceUrl)) {
-            $this->writeLog('Service Url Empty!');
+            $this->logger->writeLog('Service Url Empty!');
             return false;
         }
 
@@ -163,8 +165,8 @@ class Adapter extends AbstractModel
                 //Case to handle invalid access token
                 if ($response && $response->getStatus() == 401) {
                     //Initialize new access token
-                    $this->writeLog('Access token Invalid!');
-                    $this->writeLog('Initialise new access token !');
+                    $this->logger->writeLog('Access token Invalid!');
+                    $this->logger->writeLog('Initialise new access token !');
                     $customer = $this->_helperData->getCustomerSession();
                     if ($customer->isLoggedIn()) {
                         $accessToken = $this->helperAuth->getRequestToken();
@@ -174,7 +176,7 @@ class Adapter extends AbstractModel
                     }
                     if ($accessToken == '' || $accessToken == null) {
                         $msg = 'Please Check Oauth credentials, there might be a problem on creating access token !';
-                        $this->writeLog($msg);
+                        $this->logger->writeLog($msg);
                         return null;
                     }
                     $client = $this->setAccessToken();
@@ -189,7 +191,7 @@ class Adapter extends AbstractModel
                 $errorMessage = false;
                 if ($response && $response->getStatus() == 200) {
                     $responseBody = $response->getBody();
-                    //$this->writeLog('ION Response : ' . $responseBody);
+                    //$this->logger->writeLog('ION Response : ' . $responseBody);
                     //Converting the response format
                     $parsedResult = json_decode($responseBody, true);
                     if (is_array($parsedResult) && isset($parsedResult[Constant::RESULTS])) {
@@ -230,7 +232,7 @@ class Adapter extends AbstractModel
                 else {
                     $transactionString = $transaction;
                 }
-                $this->writeLog($transactionString . ' Transaction Data:' . $data . 'Response: ' . $responseBody
+                $this->logger->writeLog($transactionString . ' Transaction Data:' . $data . 'Response: ' . $responseBody
                     . '-' . $errorMessage . "\r\n"
                     . 'Response Time in secs:'
                     . $rTime);
@@ -241,7 +243,7 @@ class Adapter extends AbstractModel
                 Constant::KEY_ERROR => $e->getMessage(),
                 Constant::KEY_CODE  => $e->getCode(),
             ];
-            $this->writeLog('Service Link Error - eConnect Transaction Related' . "\r\n"
+            $this->logger->writeLog('Service Link Error - eConnect Transaction Related' . "\r\n"
                 . json_encode($debugData, true));
         }
 
@@ -321,23 +323,5 @@ class Adapter extends AbstractModel
         );
 
         return $client;
-    }
-
-    /**
-     * Write message to Log
-     *
-     * @param $message
-     */
-    public function writeLog($message)
-    {
-        if($this->isLogEnabled == '')
-        {
-            $this->isLogEnabled = $this->scopeConfig->getValue(\LeanSwift\Login\Helper\Constant::LOGGER_ENABLE_PATH);
-        }
-        if($this->isLogEnabled == 1)
-        {
-            $this->logger->info($message);
-        }
-        return $this;
     }
 }
