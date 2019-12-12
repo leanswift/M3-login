@@ -1,25 +1,20 @@
 <?php
 /**
- * LeanSwift eConnect Extension
+ *  LeanSwift Login Extension
  *
- * NOTICE OF LICENSE
+ *  DISCLAIMER
  *
- * This source file is subject to the LeanSwift eConnect Extension License
- * that is bundled with this package in the file LICENSE.txt located in the
- * Connector Server.
+ *   This extension is licensed and distributed by LeanSwift. Do not edit or add
+ *   to this file if you wish to upgrade Extension and Connector to newer
+ *   versions in the future. If you wish to customize Extension for your needs
+ *   please contact LeanSwift for more information. You may not reverse engineer,
+ *   decompile, or disassemble LeanSwift Login Extension (All Versions),
+ *   except and only to the extent that such activity is expressly permitted by
+ *    applicable law not withstanding this limitation.
  *
- * DISCLAIMER
+ *   @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
+ *   @license     https://www.leanswift.com/end-user-licensing-agreement
  *
- * This extension is licensed and distributed by LeanSwift. Do not edit or add
- * to this file if you wish to upgrade Extension and Connector to newer
- * versions in the future. If you wish to customize Extension for your needs
- * please contact LeanSwift for more information. You may not reverse engineer,
- * decompile, or disassemble LeanSwift Connector Extension (All Versions),
- * except and only to the extent that such activity is expressly permitted by
- * applicable law not withstanding this limitation.
- *
- * @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
- * @license     https://www.leanswift.com/end-user-licensing-agreement
  */
 
 namespace LeanSwift\Login\Model;
@@ -33,9 +28,12 @@ use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Framework\Session\SessionManagerInterface;
 
+/**
+ * Class Authentication
+ * @package LeanSwift\Login\Model
+ */
 class Authentication
 {
-
     /**
      * @var AuthClient
      */
@@ -55,15 +53,19 @@ class Authentication
      * @var Adapter
      */
     private $logger;
+    /**
+     * @var SessionManagerInterface
+     */
+    protected $_coreSession;
 
     /**
      * Authentication constructor.
      *
-     * @param AuthClient                  $authClient
-     * @param CustomerFactory             $customerFactory
+     * @param AuthClient $authClient
+     * @param CustomerFactory $customerFactory
      * @param CustomerRepositoryInterface $customerRepository
-     * @param SessionManagerInterface     $coreSession
-     * @param Adapter                     $adapter
+     * @param SessionManagerInterface $coreSession
+     * @param Logger $logger
      */
     public function __construct(
         AuthClient $authClient,
@@ -99,6 +101,7 @@ class Authentication
         $credentials['client_secret'] = $clientSecret;
         $credentials['grant_type'] = 'authorization_code';
         $credentials['code'] = $code;
+        $credentials['redirect_uri'] = $this->auth->getReturnUrl();
         $client->setParameterPost($credentials);
         $client->setConfig(['maxredirects' => 3, 'timeout' => $timeout]);
         try {
@@ -160,7 +163,7 @@ class Authentication
         $params['url'] = $mingleUrl;
         $params['method'] = $method;
         $params['token'] = $accessToken;
-        $responseBody = $this->sendRequest($params,'POST');
+        $responseBody = $this->sendRequest($params);
         if(!empty($responseBody))
         {
             return $responseBody['UserDetailList'][0];
@@ -220,16 +223,16 @@ class Authentication
             $data = json_encode($params['data']);
         }
         else {
-            $data = '{}';
+            $data = '';
         }
         $client->setRawData($data, 'application/json');
         $client->setConfig(['maxredirects' => 3, 'timeout' => $timeout, 'keepalive' => true]);
+        $afterTime = microtime(true);
+        $rTime = $afterTime - $beforeTime;
         try {
             $response = $client->request($requestType);
             $parsedResult = $response->getBody();
-            $afterTime = microtime(true);
             if ($response->getStatus() == 200) {
-                $rTime = $afterTime - $beforeTime;
                 $responseBody = json_decode($parsedResult, true);
             }
             $this->logger->writeLog($params['method'] . ' Transaction Data:' . $data . 'Response: ' . $parsedResult
