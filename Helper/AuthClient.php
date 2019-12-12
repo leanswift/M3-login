@@ -1,25 +1,20 @@
 <?php
 /**
- * LeanSwift eConnect Extension
+ *  LeanSwift Login Extension
  *
- * NOTICE OF LICENSE
+ *  DISCLAIMER
  *
- * This source file is subject to the LeanSwift eConnect Extension License
- * that is bundled with this package in the file LICENSE.txt located in the
- * Connector Server.
+ *   This extension is licensed and distributed by LeanSwift. Do not edit or add
+ *   to this file if you wish to upgrade Extension and Connector to newer
+ *   versions in the future. If you wish to customize Extension for your needs
+ *   please contact LeanSwift for more information. You may not reverse engineer,
+ *   decompile, or disassemble LeanSwift Login Extension (All Versions),
+ *   except and only to the extent that such activity is expressly permitted by
+ *    applicable law not withstanding this limitation.
  *
- * DISCLAIMER
+ *   @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
+ *   @license     https://www.leanswift.com/end-user-licensing-agreement
  *
- * This extension is licensed and distributed by LeanSwift. Do not edit or add
- * to this file if you wish to upgrade Extension and Connector to newer
- * versions in the future. If you wish to customize Extension for your needs
- * please contact LeanSwift for more information. You may not reverse engineer,
- * decompile, or disassemble LeanSwift Connector Extension (All Versions),
- * except and only to the extent that such activity is expressly permitted by
- * applicable law not withstanding this limitation.
- *
- * @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
- * @license     https://www.leanswift.com/end-user-licensing-agreement
  */
 
 namespace LeanSwift\Login\Helper;
@@ -31,23 +26,12 @@ use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
 
+/**
+ * Class AuthClient
+ * @package LeanSwift\Login\Helper
+ */
 class AuthClient extends AbstractHelper
 {
-    const XML_PATH_WEB_MINGLE_URL = 'leanswift_login/authentication/mingle_url';
-
-    const XML_PATH_WEB_SERVICE_URL = 'leanswift_login/authentication/service_url';
-
-    const XML_PATH_ION_URL = 'ion/general_config/service_url';
-
-    const XML_PATH_WEB_SERVICE_CLIENTID = 'leanswift_login/authentication/web_service_clientid';
-
-    const XML_PATH_WEB_SERVICE_CLIENTSECRET = 'leanswift_login/authentication/web_service_clientsecret';
-
-    const XML_PATH_DOMAIN = 'leanswift_login/general/domain_name';
-
-    const XML_PATH_ENABLE = 'leanswift_login/general/enable_login';
-
-    protected $cloudMingleHost = 'mingle-sso.inforcloudsuite.com';
     /**
      * @var EncryptorInterface
      */
@@ -60,10 +44,6 @@ class AuthClient extends AbstractHelper
      * @var SessionManagerInterface
      */
     protected $_session;
-    /**
-     * @var Data
-     */
-    protected $loginHelper;
     /**
      * @var ManagerInterface
      */
@@ -110,7 +90,6 @@ class AuthClient extends AbstractHelper
                 'capture_peer_cert' => false,
             ],
         ];
-
         // Create an adapter object and attach it to the HTTP client
         $adapter = new \Zend_Http_Client_Adapter_Socket();
         $adapter->setStreamContext($options);
@@ -128,7 +107,7 @@ class AuthClient extends AbstractHelper
     public function getClientSecret($storeId = null)
     {
         return $this->_encryptorInterface->decrypt($this->scopeConfig->getValue(
-            self::XML_PATH_WEB_SERVICE_CLIENTSECRET,
+            Constant::XML_PATH_WEB_SERVICE_CLIENTSECRET,
             $this->_dataHelper->getStoreScope(),
             $storeId
         ));
@@ -139,8 +118,7 @@ class AuthClient extends AbstractHelper
      */
     public function isCloudHost()
     {
-        $link = $this->scopeConfig->getValue(self::XML_PATH_WEB_SERVICE_URL);
-        $host = parse_url($link, PHP_URL_HOST);
+        $host = parse_url($this->getTokenURL(), PHP_URL_HOST);
         return $host == $this->getCloudMingleHost();
     }
 
@@ -149,7 +127,7 @@ class AuthClient extends AbstractHelper
      */
     public function getOauthLink()
     {
-        $oauthURL = $this->trimURL($this->scopeConfig->getValue(self::XML_PATH_WEB_SERVICE_URL));
+        $oauthURL = $this->getTokenURL();
         if(!$oauthURL) {
             $this->logger->writeLog('Service URL for Token is not configured');
             return  '';
@@ -163,7 +141,7 @@ class AuthClient extends AbstractHelper
         $returnUrl = $this->getReturnUrl();
         //if it cloud environment
         if ($isCloud) {
-            $authorize = '/as/authorization.oauth2';
+            $authorize = '/authorization.oauth2';
             $redirect = "redirect_url=$returnUrl";
         }
         //if it is on-premise environment
@@ -171,7 +149,8 @@ class AuthClient extends AbstractHelper
             $authorize = '/connect/authorize';
             $redirect = "redirect_uri=$returnUrl";
         }
-        $param = "$authorize?client_id=$clientId&response_type=code&$redirect";
+        $params = $this->getAuthorizingURLParams();
+        $param = "$params[0]?client_id=$clientId&response_type=code&$redirect";
         return $oauthURL . $param;
     }
 
@@ -185,7 +164,7 @@ class AuthClient extends AbstractHelper
     public function getClientId($storeId = null)
     {
         return $this->scopeConfig->getValue(
-            self::XML_PATH_WEB_SERVICE_CLIENTID,
+            Constant::XML_PATH_WEB_SERVICE_CLIENTID,
             $this->_dataHelper->getStoreScope(),
             $storeId
         );
@@ -196,14 +175,14 @@ class AuthClient extends AbstractHelper
      */
     public function getTokenLink()
     {
-        $tokenURL = $this->trimURL($this->scopeConfig->getValue(self::XML_PATH_WEB_SERVICE_URL));
+        $tokenURL = $this->getTokenURL();
         if(!$tokenURL) {
             return  '';
         }
         $isCloud = $this->isCloudHost();
         //if it cloud environment
         if ($isCloud) {
-            $token = '/as/token.oauth2';
+            $token = '/token.oauth2';
         }
         //if it is on-premise environment
         else {
@@ -214,22 +193,27 @@ class AuthClient extends AbstractHelper
 
     public function getMingleLink()
     {
-        return $this->trimURL($this->scopeConfig->getValue(self::XML_PATH_WEB_MINGLE_URL));
+        return $this->trimURL($this->scopeConfig->getValue(Constant::XML_PATH_WEB_MINGLE_URL));
+    }
+
+    public function getTokenURL()
+    {
+        return $this->trimURL($this->scopeConfig->getValue(Constant::XML_PATH_WEB_SERVICE_URL));
     }
 
     public function getIonLink()
     {
-        return $this->scopeConfig->getValue(self::XML_PATH_ION_URL);
+        return $this->scopeConfig->getValue(Constant::XML_PATH_ION_URL);
     }
 
     public function getDomain()
     {
-        return $this->scopeConfig->getValue(self::XML_PATH_DOMAIN);
+        return $this->scopeConfig->getValue(Constant::XML_PATH_DOMAIN);
     }
 
     public function isEnable()
     {
-        return $this->scopeConfig->getValue(self::XML_PATH_ENABLE);
+        return $this->scopeConfig->getValue(Constant::XML_PATH_ENABLE);
     }
 
     public function getAccessToken($storeId = null)
@@ -287,11 +271,31 @@ class AuthClient extends AbstractHelper
      */
     public function getCloudMingleHost()
     {
-        return $this->cloudMingleHost;
+        return Constant::CLOUD_MINGLE_HOST;
     }
 
     public function trimURL($url)
     {
         return trim(rtrim($url, '/'));
+    }
+
+    /**
+     * @return array
+     */
+    public function getAuthorizingURLParams()
+    {
+        $isCloud = $this->isCloudHost();
+        $returnUrl = $this->getReturnUrl();
+        //if it cloud environment
+        if ($isCloud) {
+            $authorize = '/authorization.oauth2';
+            $redirect = "redirect_url=$returnUrl";
+        }
+        //if it is on-premise environment
+        else {
+            $authorize = '/connect/authorize';
+            $redirect = "redirect_uri=$returnUrl";
+        }
+        return [$authorize, $redirect];
     }
 }
