@@ -63,6 +63,10 @@ final class AuthPlugin
      * @var Data
      */
     protected $helper;
+    /**
+     * @var SessionManagerInterface
+     */
+    protected $_coreSession;
 
     /**
      * AuthPlugin constructor.

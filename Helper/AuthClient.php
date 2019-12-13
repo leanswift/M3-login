@@ -137,20 +137,8 @@ class AuthClient extends AbstractHelper
             $this->logger->writeLog('Client ID is not configured');
             return  '';
         }
-        $isCloud = $this->isCloudHost();
-        $returnUrl = $this->getReturnUrl();
-        //if it cloud environment
-        if ($isCloud) {
-            $authorize = '/authorization.oauth2';
-            $redirect = "redirect_url=$returnUrl";
-        }
-        //if it is on-premise environment
-        else {
-            $authorize = '/connect/authorize';
-            $redirect = "redirect_uri=$returnUrl";
-        }
         $params = $this->getAuthorizingURLParams();
-        $param = "$params[0]?client_id=$clientId&response_type=code&$redirect";
+        $param = "$params[0]?client_id=$clientId&response_type=code&$params[1]";
         return $oauthURL . $param;
     }
 
@@ -297,5 +285,32 @@ class AuthClient extends AbstractHelper
             $redirect = "redirect_uri=$returnUrl";
         }
         return [$authorize, $redirect];
+    }
+
+    public function getRevokeURL() {
+        $logout = 'https://demos.leanswift.com/api/user/infor/loggingOut';
+        //$url = $this->getTokenURL() . '/connect/revocation';
+        $accessToken = '';
+        $client = $this->getClient();
+//        //$url = $this->auth->getTokenLink();
+//        if(!$url) {
+//            $this->logger->writeLog('Service URL for Token is not configured');
+//            return '';
+//        }
+
+
+        $client->setUri($logout);
+        $clientId = $this->getClientId();
+//        $clientSecret = $this->getClientSecret();
+//        $credentials['client_id'] = $clientId;
+//        $credentials['client_secret'] = $clientSecret;
+//        $credentials['token'] = '75847472e13bf39c380ee915a7e487fa';
+//        $credentials['token_type_hint'] = 'refresh_token';
+//        $client->setParameterPost($credentials);
+        $client->setRawData('');
+        $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);
+        $response = $client->request('POST');
+        $parsedResult = $response->getBody();
+        print_r($parsedResult);
     }
 }

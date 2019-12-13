@@ -69,6 +69,10 @@ class Index extends Action
      * @var string
      */
     protected $redirectpath;
+    /**
+     * @var SessionManagerInterface
+     */
+    protected $_coreSession;
 
     /**
      * Index constructor.
@@ -110,37 +114,41 @@ class Index extends Action
      */
     public function execute()
     {
+        $loginCustomerEmail = $this->_coreSession->getEmail();
         $info = $this->getRequest()->getParams();
-        if ($info && array_key_exists('code', $info)) {
-            $code = $info['code'];
-            $accessToken = $this->helper->authModel()->generateToken($code);
-            if($accessToken)
-            {
-                $userDetails = $this->helper->authModel()->getUserName($accessToken);
-                if(!empty($userDetails))
-                {
-                    if (array_key_exists('username', $userDetails)) {
-                        $email = $userDetails['email'];
-                        try {
-                            $this->logincustomer($email);
-                        } catch (Exception $e) {
-                            $this->createCustomer($userDetails);
+        try {
+            if ($info && array_key_exists('code', $info)) {
+                $code = $info['code'];
+                $accessToken = $this->helper->authModel()->generateToken($code);
+                if ($accessToken) {
+                    $userDetails = $this->helper->authModel()->getUserName($accessToken);
+                    if (!empty($userDetails)) {
+                        if (array_key_exists('username', $userDetails)) {
+                            $userDetails['email'] = $userDetails['email'] ? $userDetails['email'] : $loginCustomerEmail;
+                            try {
+                                $this->logincustomer($userDetails['email']);
+                            } catch (Exception $e) {
+                                $this->createCustomer($userDetails);
+                            }
+                        } else {
+                            throw new \Exception('Username details are not present');
                         }
+                    } else {
+                        throw new \Exception('Service URL for Authorization is not configured');
                     }
+                } else {
+                    throw new \Exception('Access token could not be created');
                 }
-                else {
-                    $this->logger->writeLog('Service URL for Authorization is not configured');
-                    $this->messageManager->addErrorMessage('Authentication failed');
-                }
+            } else {
+                throw new \Exception('Authentication code is failed');
             }
-            else {
-                $this->messageManager->addErrorMessage('Authentication failed');
-            }
+        }
+        catch (\Exception $e) {
+            $this->logger->writeLog($e->getMessage());
+            $this->messageManager->addErrorMessage('Authentication failed');
         }
         $this->_redirect($this->getRedirectPath());
     }
-
-
 
     public function logincustomer($email)
     {
