@@ -244,7 +244,7 @@ class Authentication
         return $responseBody;
     }
 
-    public function requestToken()
+    public function requestToken($timeout=60)
     {
         $accessToken = '';
         $client = $this->auth->getClient();
@@ -263,7 +263,7 @@ class Authentication
         $credentials['grant_type'] = 'refresh_token';
         $credentials['refresh_token'] = $this->_coreSession->getRefreshToken();
         $client->setParameterPost($credentials);
-        $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);
+        $client->setConfig(['maxredirects' => 3, 'timeout' => $timeout]);
         try {
             $response = $client->request('POST');
             if ($response->getStatus() == 200) {

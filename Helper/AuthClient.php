@@ -286,31 +286,4 @@ class AuthClient extends AbstractHelper
         }
         return [$authorize, $redirect];
     }
-
-    public function getRevokeURL() {
-        $logout = 'https://demos.leanswift.com/api/user/infor/loggingOut';
-        //$url = $this->getTokenURL() . '/connect/revocation';
-        $accessToken = '';
-        $client = $this->getClient();
-//        //$url = $this->auth->getTokenLink();
-//        if(!$url) {
-//            $this->logger->writeLog('Service URL for Token is not configured');
-//            return '';
-//        }
-
-
-        $client->setUri($logout);
-        $clientId = $this->getClientId();
-//        $clientSecret = $this->getClientSecret();
-//        $credentials['client_id'] = $clientId;
-//        $credentials['client_secret'] = $clientSecret;
-//        $credentials['token'] = '75847472e13bf39c380ee915a7e487fa';
-//        $credentials['token_type_hint'] = 'refresh_token';
-//        $client->setParameterPost($credentials);
-        $client->setRawData('');
-        $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);
-        $response = $client->request('POST');
-        $parsedResult = $response->getBody();
-        print_r($parsedResult);
-    }
 }
