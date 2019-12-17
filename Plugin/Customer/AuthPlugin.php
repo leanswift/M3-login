@@ -22,7 +22,10 @@ namespace LeanSwift\Login\Plugin\Customer;
 use Closure;
 use LeanSwift\Login\Helper\AuthClient;
 use LeanSwift\Login\Helper\Data;
+use LeanSwift\Login\Model\Authentication;
+use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Model\AccountManagement;
+use Magento\Framework\Api\AttributeInterface;
 use Magento\Framework\App\ResponseFactory;
 use Magento\Framework\Exception\AuthenticationException;
 use Magento\Framework\Exception\InvalidEmailOrPasswordException;
@@ -67,6 +70,14 @@ final class AuthPlugin
      * @var SessionManagerInterface
      */
     protected $_coreSession;
+    /**
+     * @var CustomerRepositoryInterface
+     */
+    protected $customerRepo;
+    /**
+     * @var Authentication
+     */
+    protected $authModel;
 
     /**
      * AuthPlugin constructor.
@@ -80,7 +91,9 @@ final class AuthPlugin
         AuthClient $authClient,
         SessionManagerInterface $coreSession,
         ManagerInterface $manager,
-        Data $helper
+        Data $helper,
+        CustomerRepositoryInterface $customerRepo,
+        Authentication $auth
     ) {
         $this->logger = $logger;
         $this->responseFactory = $responseFactory;
@@ -88,6 +101,8 @@ final class AuthPlugin
         $this->_coreSession = $coreSession;
         $this->messageManager = $manager;
         $this->helper = $helper;
+        $this->customerRepo = $customerRepo;
+        $this->authModel = $auth;
     }
 
     /**
@@ -107,16 +122,23 @@ final class AuthPlugin
             $dns = $this->auth->getDomain();
             $dnsArray = explode(",", $dns);
             if (in_array($domain, $dnsArray)) {
-                $this->_coreSession->start();
-                $this->_coreSession->setEmail($username);
-                $flag = false;
-                $redirectionUrl = $this->auth->getOauthLink();
-                if($redirectionUrl)
-                {
-                    $this->responseFactory->create()->setRedirect($redirectionUrl)->sendResponse();
+                $authCode = $this->getAuthenticationCode($username);
+                if(!$authCode) {
+                    $this->_coreSession->start();
+                    $this->_coreSession->setEmail($username);
+                    $flag = false;
+                    $redirectionUrl = $this->auth->getOauthLink();
+                    if($redirectionUrl)
+                    {
+                        $this->responseFactory->create()->setRedirect($redirectionUrl)->sendResponse();
+                    }
+                    else {
+                        throw new LocalizedException(__('Authentication Failed'));
+                    }
                 }
+                //Generate token
                 else {
-                    throw new LocalizedException(__('Authentication Failed'));
+                    $this->authModel->generateToken($authCode);
                 }
             }
         }
@@ -124,4 +146,21 @@ final class AuthPlugin
             return $proceed($username, $password);
         }
     }
+
+    /**
+     * @param $email
+     * @return mixed|string
+     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function getAuthenticationCode($email)
+    {
+        $customerInfo = $this->customerRepo->get($email);
+        $attributeInfo = $customerInfo->getCustomAttribute('authentication_code');
+        if($attributeInfo instanceof AttributeInterface) {
+            return $attributeInfo->getValue();
+        }
+        return '';
+    }
+
 }

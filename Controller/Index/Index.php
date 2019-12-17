@@ -25,6 +25,7 @@ use LeanSwift\Login\Helper\Logger;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\Session;
+use Magento\Framework\Api\AttributeInterface;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\ResponseInterface;
@@ -114,28 +115,17 @@ class Index extends Action
      */
     public function execute()
     {
-        $loginCustomerEmail = $this->_coreSession->getEmail();
+        $code = '';
         $info = $this->getRequest()->getParams();
         try {
             if ($info && array_key_exists('code', $info)) {
                 $code = $info['code'];
+                if(!$code) {
+                    throw new \Exception('Authentication code is not present');
+                }
                 $accessToken = $this->helper->authModel()->generateToken($code);
                 if ($accessToken) {
-                    $userDetails = $this->helper->authModel()->getUserName($accessToken);
-                    if (!empty($userDetails)) {
-                        if (array_key_exists('username', $userDetails)) {
-                            $userDetails['email'] = $userDetails['email'] ? $userDetails['email'] : $loginCustomerEmail;
-                            try {
-                                $this->logincustomer($userDetails['email']);
-                            } catch (Exception $e) {
-                                $this->createCustomer($userDetails);
-                            }
-                        } else {
-                            throw new \Exception('Username details are not present');
-                        }
-                    } else {
-                        throw new \Exception('Service URL for Authorization is not configured');
-                    }
+                    $this->loginAsCustomer($accessToken);
                 } else {
                     throw new \Exception('Access token could not be created');
                 }
@@ -147,6 +137,7 @@ class Index extends Action
             $this->logger->writeLog($e->getMessage());
             $this->messageManager->addErrorMessage('Authentication failed');
         }
+        $this->addAuthenticationCode($code);
         $this->_redirect($this->getRedirectPath());
     }
 
@@ -155,6 +146,44 @@ class Index extends Action
         $customerRepo = $this->customerRepo->get($email);                    //load with email
         $customer = $this->customerFactory->create()->load($customerRepo->getId());     //get the customer model by id
         $this->customerSession->setCustomerAsLoggedIn($customer);
+    }
+
+    public function loginAsCustomer($accessToken)
+    {
+        $userDetails = $this->helper->authModel()->getUserName($accessToken);
+        if (!empty($userDetails)) {
+            $userDetails['email'] = 'niranjan.b@leanswift.com';
+            if (array_key_exists('username', $userDetails) && array_key_exists('email', $userDetails)) {
+                if(!$userDetails['email'])
+                {
+                    throw new \Exception('Email is not configured in M3');
+                }
+                if(!$this->validateEmail($userDetails['email'])) {
+                    throw new \Exception('Email entered is different from the M3 email');
+                }
+                try {
+                    $this->logincustomer($userDetails['email']);
+                } catch (Exception $e) {
+                    $this->createCustomer($userDetails);
+                }
+            } else {
+                throw new \Exception('Username/Email detail are not present');
+            }
+        } else {
+            throw new \Exception('Service URL for Authorization is not configured');
+        }
+    }
+
+    /**
+     * Validate the email with entered email from magento
+     *
+     * @param $email
+     * @return bool
+     */
+    public function validateEmail($email)
+    {
+        $loginCustomerEmail = $this->_coreSession->getEmail();
+        return $loginCustomerEmail === $email;
     }
 
     public function createCustomer($userDetailList)
@@ -190,6 +219,25 @@ class Index extends Action
             $this->logger->writeLog($e->getMessage());
         }
         //$customer->sendNewAccountEmail();
+    }
+
+    /**
+     * @param $customerId
+     * @param $authCode
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws \Magento\Framework\Exception\State\InputMismatchException
+     */
+    public function addAuthenticationCode($authCode)
+    {
+        if($this->customerSession->isLoggedIn()) {
+            $customerInfo = $this->customerSession->getCustomerData()->setCustomAttribute(
+                'authentication_code',
+                $authCode
+            );
+            $this->customerRepo->save($customerInfo);
+        }
     }
 
     /**
