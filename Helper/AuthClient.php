@@ -52,6 +52,10 @@ class AuthClient extends AbstractHelper
      * @var \Monolog\Logger
      */
     protected $logger;
+    /**
+     * @var \Magento\Framework\Data\Form\FormKey
+     */
+    protected $formKey;
 
     public function __construct(
         Context $context,
@@ -59,7 +63,8 @@ class AuthClient extends AbstractHelper
         \LeanSwift\Econnect\Helper\Data $helper,
         SessionManagerInterface $coreSession,
         ManagerInterface $manager,
-        Logger $logger
+        Logger $logger,
+        \Magento\Framework\Data\Form\FormKey $formKey
     )
     {
         $this->_encryptorInterface = $encryptor;
@@ -67,6 +72,7 @@ class AuthClient extends AbstractHelper
         $this->_session = $coreSession;
         $this->logger = $logger;
         $this->messageManager = $manager;
+        $this->formKey = $formKey;
         parent::__construct($context);
     }
 
@@ -138,7 +144,7 @@ class AuthClient extends AbstractHelper
             return  '';
         }
         $params = $this->getAuthorizingURLParams();
-        $param = "$params[0]?client_id=$clientId&response_type=code&$params[1]";
+        $param = "$params[0]?client_id=$clientId&response_type=code&$params[1]&state=".$this->getFormKey();
         return $oauthURL . $param;
     }
 
@@ -286,4 +292,14 @@ class AuthClient extends AbstractHelper
         }
         return [$authorize, $redirect];
     }
+
+    /**
+     * @return string
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function getFormKey()
+    {
+        return $this->formKey->getFormKey();
+    }
+
 }
