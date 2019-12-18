@@ -301,4 +301,5 @@ class AuthClient extends AbstractHelper
     {
         return $this->formKey->getFormKey();
     }
+
 }
