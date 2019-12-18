@@ -130,7 +130,7 @@ class Index extends Action
                     throw new \Exception('Access token could not be created');
                 }
             } else {
-                throw new \Exception('Authentication code is failed');
+                throw new \Exception('Authentication failed from M3');
             }
         }
         catch (\Exception $e) {
@@ -152,7 +152,6 @@ class Index extends Action
     {
         $userDetails = $this->helper->authModel()->getUserName($accessToken);
         if (!empty($userDetails)) {
-            $userDetails['email'] = 'niranjan.b@leanswift.com';
             if (array_key_exists('username', $userDetails) && array_key_exists('email', $userDetails)) {
                 if(!$userDetails['email'])
                 {
@@ -222,6 +221,8 @@ class Index extends Action
     }
 
     /**
+     * Add authentication code to logged in customer
+     *
      * @param $customerId
      * @param $authCode
      * @throws \Magento\Framework\Exception\InputException

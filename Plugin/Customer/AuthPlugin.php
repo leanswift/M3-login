@@ -137,9 +137,9 @@ final class AuthPlugin
                     }
                 }
                 //Generate token
-                else {
-                    $this->authModel->generateToken($authCode);
-                }
+//                else {
+//                    //$this->authModel->generateToken($authCode);
+//                }
             }
         }
         if ($flag) {
@@ -148,6 +148,8 @@ final class AuthPlugin
     }
 
     /**
+     * Get authentication code for email trying to login
+     *
      * @param $email
      * @return mixed|string
      * @throws LocalizedException
