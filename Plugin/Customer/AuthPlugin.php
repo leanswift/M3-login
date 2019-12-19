@@ -157,12 +157,15 @@ final class AuthPlugin
      */
     public function getAuthenticationCode($email)
     {
-        $customerInfo = $this->customerRepo->get($email);
-        $attributeInfo = $customerInfo->getCustomAttribute('authentication_code');
-        if($attributeInfo instanceof AttributeInterface) {
-            return $attributeInfo->getValue();
+        try {
+            $customerInfo = $this->customerRepo->get($email);
+            $attributeInfo = $customerInfo->getCustomAttribute('authentication_code');
+            if ($attributeInfo instanceof AttributeInterface) {
+                return $attributeInfo->getValue();
+            }
+        }catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
         }
-        return '';
+        return  '';
     }
 
 }
