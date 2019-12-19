@@ -136,8 +136,9 @@ class Authentication
         }
         $userDetailList = $this->getUserDetails($mingleUrl, $accessToken);
         if (!empty($userDetailList)) {
+            $emailKey = $this->auth->getValidateEmail();
             $userCode = $userDetailList['UserName'];
-            $email = $userDetailList['Email'];
+            $email = isset($userDetailList[$emailKey]) ? $userDetailList[$emailKey]: '';
             $firstName = $userDetailList['FirstName'];
             $lastName = $userDetailList['LastName'];
             $customerData = [
@@ -146,8 +147,15 @@ class Authentication
                 'lastname'  => $lastName,
                 'username'  => ''
             ];
-            $data['EUID'] = $userCode;
-            $customerData['username'] = $this->getUserNameDetail($accessToken, $userCode);
+            $isCloud = $this->auth->isCloudHost();
+            if($isCloud)
+            {
+                $customerData['username'] = $this->getUserNameDetail($accessToken, $userCode);
+            }
+            else {
+                $customerData['username'] = $userDetailList['PersonId'];
+            }
+            //$data['EUID'] = $userCode;
         }
         return $customerData;
     }

@@ -200,6 +200,11 @@ class AuthClient extends AbstractHelper
         return $this->scopeConfig->getValue(Constant::XML_PATH_ION_URL);
     }
 
+    public function getValidateEmail()
+    {
+        return $this->scopeConfig->getValue(Constant::XML_PATH_VALIDATE_EMAIL);
+    }
+
     public function getDomain()
     {
         return $this->scopeConfig->getValue(Constant::XML_PATH_DOMAIN);
