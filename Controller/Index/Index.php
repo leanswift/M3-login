@@ -182,7 +182,7 @@ class Index extends Action
     public function validateEmail($email)
     {
         $loginCustomerEmail = $this->_coreSession->getEmail();
-        return $loginCustomerEmail === $email;
+        return  (strcasecmp($loginCustomerEmail, $email) == 0);
     }
 
     public function createCustomer($userDetailList)
