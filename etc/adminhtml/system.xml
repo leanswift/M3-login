@@ -19,6 +19,9 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
+        <tab id="leanswift" translate="label" sortOrder="100">
+            <label>LeanSwift Solutions</label>
+        </tab>
         <section id="leanswift_login" translate="label" sortOrder="200" showInDefault="1" showInWebsite="1"
                  showInStore="1">
             <class>separator-top</class>
