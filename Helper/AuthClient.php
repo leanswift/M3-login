@@ -144,7 +144,7 @@ class AuthClient extends AbstractHelper
             return  '';
         }
         $params = $this->getAuthorizingURLParams();
-        $param = "$params[0]?client_id=$clientId&response_type=code&$params[1]&state=".$this->getFormKey();
+        $param = "$params[0]?client_id=$clientId&max_age=20&prompt=login&nonce=NONCE&response_type=code&$params[1]&state=".$this->getFormKey();
         return $oauthURL . $param;
     }
 
