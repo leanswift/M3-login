@@ -51,11 +51,10 @@ class Import extends Action
 
     /**
      * Import constructor.
-     *
-     * @param Context  $context
-     * @param Registry $coreRegistry
-     * @param Data     $erpapi
+     * @param Context $context
+     * @param Data $data
      * @param Userrole $userrole
+     * @param Erpapi $erpapi
      */
     public function __construct(
         Context $context,

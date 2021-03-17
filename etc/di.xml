@@ -48,7 +48,7 @@
         </arguments>
     </type>
 
-    <type name="LeanSwift\Econnect\Helper\Version">
+    <type name="LeanSwift\EconnectBase\Helper\Version">
         <arguments>
             <argument name="config" xsi:type="array">
                 <item name="login" xsi:type="array">
