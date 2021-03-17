@@ -26,8 +26,7 @@ use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 
 /**
- * Class AddCustomerAttribute
- *
+ * Class AddUsernameAttribute
  * @package LeanSwift\Login\Setup\Patch\Data
  */
 class AddUsernameAttribute implements DataPatchInterface
@@ -49,10 +48,10 @@ class AddUsernameAttribute implements DataPatchInterface
     private $customerSetupFactory;
 
     /**
-     * AddCustomerUpdatedAtAttribute constructor.
-     *
+     * AddUsernameAttribute constructor.
      * @param ModuleDataSetupInterface $moduleDataSetup
-     * @param CustomerSetupFactory     $customerSetupFactory
+     * @param AttributeSetFactory $attributeSetFactory
+     * @param CustomerSetupFactory $customerSetupFactory
      */
     public function __construct(
         ModuleDataSetupInterface $moduleDataSetup,

@@ -304,11 +304,14 @@ class AuthClient extends AbstractHelper
 
     /**
      * @return string
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getFormKey()
     {
-        return $this->formKey->getFormKey();
+        try {
+            return $this->formKey->getFormKey();
+        } catch (LocalizedException $e) {
+            $this->logger->writeLog($e->getMessage());
+        }
     }
 
 }

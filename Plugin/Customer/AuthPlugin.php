@@ -12,8 +12,8 @@
  *   except and only to the extent that such activity is expressly permitted by
  *    applicable law not withstanding this limitation.
  *
- *   @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
- *   @license     https://www.leanswift.com/end-user-licensing-agreement
+ * @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
+ * @license     https://www.leanswift.com/end-user-licensing-agreement
  *
  */
 
@@ -27,23 +27,18 @@ use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Model\AccountManagement;
 use Magento\Framework\Api\AttributeInterface;
 use Magento\Framework\App\ResponseFactory;
-use Magento\Framework\Exception\AuthenticationException;
-use Magento\Framework\Exception\InvalidEmailOrPasswordException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
-use Magento\Setup\Exception;
 use Psr\Log\LoggerInterface;
 
 
 /**
  * Class AuthPlugin
- *
  * @package LeanSwift\Login\Plugin\Customer
  */
 final class AuthPlugin
 {
-
     /**
      * @var LoggerInterface
      */
@@ -81,9 +76,14 @@ final class AuthPlugin
 
     /**
      * AuthPlugin constructor.
-     *
      * @param LoggerInterface $logger
      * @param ResponseFactory $responseFactory
+     * @param AuthClient $authClient
+     * @param SessionManagerInterface $coreSession
+     * @param ManagerInterface $manager
+     * @param Data $helper
+     * @param CustomerRepositoryInterface $customerRepo
+     * @param Authentication $auth
      */
     public function __construct(
         LoggerInterface $logger,
@@ -94,7 +94,8 @@ final class AuthPlugin
         Data $helper,
         CustomerRepositoryInterface $customerRepo,
         Authentication $auth
-    ) {
+    )
+    {
         $this->logger = $logger;
         $this->responseFactory = $responseFactory;
         $this->auth = $authClient;
@@ -107,11 +108,11 @@ final class AuthPlugin
 
     /**
      * @param AccountManagement $subject
-     * @param Closure           $proceed
-     * @param                   $username
-     * @param                   $password
-     *
+     * @param Closure $proceed
+     * @param $username
+     * @param $password
      * @return mixed
+     * @throws LocalizedException
      */
     public function aroundAuthenticate(AccountManagement $subject, Closure $proceed, $username, $password)
     {
@@ -122,25 +123,23 @@ final class AuthPlugin
             $dns = $this->auth->getDomain();
             $dnsArray = explode(",", $dns);
             if (in_array($domain, $dnsArray)) {
-                //$authCode = $this->getAuthenticationCode($username);
-                //if(!$authCode) {
-                    $this->_coreSession->start();
-                    $this->_coreSession->setEmail($username);
-                    $flag = false;
-                    $redirectionUrl = $this->auth->getOauthLink();
-                    if($redirectionUrl)
-                    {
-                        $this->responseFactory->create()->setRedirect($redirectionUrl)->sendResponse();
-                    }
-                    else {
-                        throw new LocalizedException(__('Authentication Failed'));
-                    }
+//                $authCode = $this->getAuthenticationCode($username);
+//                if(!$authCode) {
+                $this->_coreSession->start();
+                $this->_coreSession->setEmail($username);
+                $flag = false;
+                $redirectionUrl = $this->auth->getOauthLink();
+                if ($redirectionUrl) {
+                    $this->responseFactory->create()->setRedirect($redirectionUrl)->sendResponse();
+                } else {
+                    throw new LocalizedException(__('Authentication Failed'));
                 }
-                //Generate token
+            }
+//            Generate token
 //                else {
 //                    //$this->authModel->generateToken($authCode);
 //                }
-            //}
+//            }
         }
         if ($flag) {
             return $proceed($username, $password);
@@ -152,8 +151,6 @@ final class AuthPlugin
      *
      * @param $email
      * @return mixed|string
-     * @throws LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getAuthenticationCode($email)
     {
@@ -163,9 +160,9 @@ final class AuthPlugin
             if ($attributeInfo instanceof AttributeInterface) {
                 return $attributeInfo->getValue();
             }
-        }catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
+        } catch (LocalizedException $e) {
         }
-        return  '';
+        return '';
     }
 
 }

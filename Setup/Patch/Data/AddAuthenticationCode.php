@@ -27,7 +27,6 @@ use Magento\Framework\Setup\Patch\DataPatchInterface;
 
 /**
  * Class AddAuthenticationCode
- *
  * @package LeanSwift\Login\Setup\Patch\Data
  */
 class AddAuthenticationCode implements DataPatchInterface
@@ -49,10 +48,10 @@ class AddAuthenticationCode implements DataPatchInterface
     private $customerSetupFactory;
 
     /**
-     * AddCustomerUpdatedAtAttribute constructor.
-     *
+     * AddAuthenticationCode constructor.
      * @param ModuleDataSetupInterface $moduleDataSetup
-     * @param CustomerSetupFactory     $customerSetupFactory
+     * @param AttributeSetFactory $attributeSetFactory
+     * @param CustomerSetupFactory $customerSetupFactory
      */
     public function __construct(
         ModuleDataSetupInterface $moduleDataSetup,

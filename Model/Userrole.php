@@ -27,20 +27,17 @@ use Magento\Framework\Registry;
 
 /**
  * Class Userrole
- *
  * @package LeanSwift\Login\Model
  */
 class Userrole extends AbstractModel
 {
-
     /**
      * Userrole constructor.
-     *
-     * @param Context               $context
-     * @param Registry              $registry
+     * @param Context $context
+     * @param Registry $registry
      * @param AbstractResource|null $resource
-     * @param AbstractDb|null       $resourceCollection
-     * @param array                 $data
+     * @param AbstractDb|null $resourceCollection
+     * @param array $data
      */
     public function __construct(
         Context $context,

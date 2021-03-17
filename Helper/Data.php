@@ -34,13 +34,19 @@ class Data extends AbstractHelper
 
     private $erpApi;
 
+    /**
+     * Data constructor.
+     * @param Context $context
+     * @param Erpapi $erpApi
+     * @param Authentication $authentication
+     */
     public function __construct(
         Context $context,
-        Erpapi $erpapi,
+        Erpapi $erpApi,
         Authentication $authentication
     ) {
         $this->authModel = $authentication;
-        $this->erpApi = $erpapi;
+        $this->erpApi = $erpApi;
         parent::__construct($context);
     }
 

@@ -47,8 +47,6 @@ class Constant extends BaseConstant
     const CLOUD_MINGLE_HOST = 'mingle-sso.inforcloudsuite.com';
 
     const TYPE = 'M3 User Roles';
-    const SyncLSUserRoles = 'SyncLSUserRoles';
-    const LSUserRoles = 'LSUserRoles';
     const LOGGER_NAME = '/var/log/m3Login.log';
     const LOGGER_ENABLE_PATH = 'leanswift_login/general/log';
     const MINGLE_USER_DETAIL = '/api/v1/mingle/go/User/Detail';
