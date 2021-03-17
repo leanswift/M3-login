@@ -19,7 +19,7 @@
 
 namespace LeanSwift\Login\Block\Backend\Roles\Ion;
 
-use LeanSwift\Econnect\Helper\Erpapi;
+use LeanSwift\EconnectBase\Helper\Data as BaseDataHelper;
 use LeanSwift\Login\Helper\Constant;
 use Magento\Backend\Block\Template\Context;
 use Magento\Backend\Block\Widget\Button;
@@ -50,25 +50,25 @@ class Initial extends Field
      */
     protected $_request;
     /**
-     * @var Erpapi
+     * @var BaseDataHelper
      */
-    protected $erpAPI;
+    protected $baseDataHelper;
 
     /**
      * Initial constructor.
-     *
-     * @param Context          $context
+     * @param Context $context
      * @param RequestInterface $request
-     * @param array            $data
+     * @param BaseDataHelper $baseDataHelper
+     * @param array $data
      */
     public function __construct(
         Context $context,
         RequestInterface $request,
-        Erpapi $erpapi,
+        BaseDataHelper $baseDataHelper,
         array $data = []
     ) {
         $this->_request = $request;
-        $this->erpAPI = $erpapi;
+        $this->baseDataHelper = $baseDataHelper;
         parent::__construct($context, $data);
         $this->setTemplate('system/config/button.phtml');
     }
@@ -96,8 +96,8 @@ class Initial extends Field
         $website = $this->_request->getParam('website');
         $redirectUrl = $this->getRedirectUrl()."website/$website";
         $message = $this->getMessage();
-        $timeZone = $this->erpAPI->getTimeZone();
-        $lastUpdatedTime = $this->erpAPI->getLastUpdatedAtHistory($type) ?? '';
+        $timeZone = $this->baseDataHelper->getTimeZone();
+        $lastUpdatedTime = $this->baseDataHelper->getLastUpdatedAtHistory($type) ?? '';
         $html = $this->getLayout()
             ->createBlock(Button::class)
             ->setType('button')

@@ -19,10 +19,10 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <type name="Magento\Customer\Model\AccountManagement">
-        <plugin name="LeanSwift_Login::CustomerPlugin"
-                type="LeanSwift\Login\Plugin\Customer\AuthPlugin" sortOrder="100"/>
+        <plugin name="LeanSwift_Login::CustomerPlugin" type="LeanSwift\Login\Plugin\Customer\AuthPlugin" sortOrder="100"/>
     </type>
-    <type name="LeanSwift\Econnect\Helper\Erpapi">
+
+    <type name="LeanSwift\EconnectBase\Helper\Erpapi">
         <plugin name="login-erpapi-plugin" type="LeanSwift\Login\Plugin\ErpapiPlugin" sortOrder="2"/>
     </type>
 
@@ -32,6 +32,7 @@
             <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
         </arguments>
     </virtualType>
+
     <virtualType name="M3LoginLogger" type="Monolog\Logger">
         <arguments>
             <argument name="name" xsi:type="string">M3LoginLogger</argument>
@@ -40,7 +41,6 @@
             </argument>
         </arguments>
     </virtualType>
-
 
     <type name="LeanSwift\Login\Helper\Logger">
         <arguments>
@@ -59,4 +59,12 @@
         </arguments>
     </type>
 
+    <type name="LeanSwift\EconnectBase\Helper\QueueProcessor">
+        <arguments>
+            <argument name="queueList" xsi:type="array">
+                <!-- LS User Roles BOD -->
+                <item name="SyncLSUserRoles" xsi:type="string">leanswift.econnect.userroles.sync.queue</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

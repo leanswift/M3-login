@@ -19,7 +19,7 @@
 
 namespace LeanSwift\Login\Plugin;
 
-use LeanSwift\Econnect\Helper\Erpapi;
+use LeanSwift\EconnectBase\Helper\Erpapi;
 use LeanSwift\Login\Helper\Constant;
 
 /**

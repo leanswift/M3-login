@@ -19,13 +19,12 @@
 
 namespace LeanSwift\Login\Controller\Adminhtml\Ion;
 
-use LeanSwift\Econnect\Helper\Erpapi;
+use LeanSwift\EconnectBase\Helper\Erpapi;
 use LeanSwift\Login\Helper\Constant;
 use LeanSwift\Login\Helper\Data;
 use LeanSwift\Login\Model\ResourceModel\Userrole;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\Registry;
 
 /**
  * Class Import
@@ -47,24 +46,24 @@ class Import extends Action
     /**
      * @var Erpapi|Data
      */
-    protected $econnectErpAPI;
+    protected $baseErpAPI;
 
     /**
      * Import constructor.
      * @param Context $context
      * @param Data $data
-     * @param Userrole $userrole
-     * @param Erpapi $erpapi
+     * @param Userrole $userRole
+     * @param Erpapi $baseErpAPI
      */
     public function __construct(
         Context $context,
         Data $data,
-        Userrole $userrole,
-        Erpapi $erpapi
+        Userrole $userRole,
+        Erpapi $baseErpAPI
     ) {
         $this->helper = $data;
-        $this->roleResource = $userrole;
-        $this->econnectErpAPI = $erpapi;
+        $this->roleResource = $userRole;
+        $this->baseErpAPI = $baseErpAPI;
         parent::__construct($context);
     }
 
@@ -85,7 +84,7 @@ class Import extends Action
         if ($rolesInfo && $flag) {
             $flag = $this->roleResource->updateRoleInfo($rolesInfo);
         }
-        $message = $this->econnectErpAPI->getInitialLoadMessage(Constant::TYPE);
+        $message = $this->baseErpAPI->getInitialLoadMessage(Constant::TYPE);
         $resultRedirect = $this->resultRedirectFactory->create();
         if ($flag) {
             $this->roleResource->updateImportHistory();

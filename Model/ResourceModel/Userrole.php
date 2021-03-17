@@ -20,7 +20,7 @@
 namespace LeanSwift\Login\Model\ResourceModel;
 
 use Exception;
-use LeanSwift\Econnect\Model\Importhistory;
+use LeanSwift\EconnectBase\Model\Importhistory;
 use LeanSwift\Login\Helper\Constant;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 use Magento\Framework\Model\ResourceModel\Db\Context;

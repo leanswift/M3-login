@@ -20,8 +20,8 @@
 namespace LeanSwift\Login\Model\Subscriber;
 
 use Exception;
-use LeanSwift\Econnect\Api\MessageInterface;
-use LeanSwift\Econnect\Api\SubscriberInterface;
+use LeanSwift\EconnectBase\Api\MessageInterface;
+use LeanSwift\EconnectBase\Api\SubscriberInterface;
 use LeanSwift\Econnect\Helper\Ion;
 use LeanSwift\Econnect\Model\Subscriber\IonAbstractModel;
 use LeanSwift\Login\Helper\Constant;
