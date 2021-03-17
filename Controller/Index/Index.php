@@ -12,7 +12,7 @@
  *   except and only to the extent that such activity is expressly permitted by
  *    applicable law not withstanding this limitation.
  *
- *   @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
+ *   @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
  *   @license     https://www.leanswift.com/end-user-licensing-agreement
  *
  */
