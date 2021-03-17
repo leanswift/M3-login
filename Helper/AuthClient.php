@@ -37,7 +37,7 @@ class AuthClient extends AbstractHelper
     /**
      * @var EncryptorInterface
      */
-    protected $encryptInterface;
+    protected $encryptorInterface;
     /**
      * @var \LeanSwift\EconnectBase\Helper\Data
      */
@@ -61,7 +61,7 @@ class AuthClient extends AbstractHelper
 
     public function __construct(
         Context $context,
-        EncryptorInterface $encrypt,
+        \Magento\Framework\Encryption\EncryptorInterface $encrypt,
         \LeanSwift\EconnectBase\Helper\Data $baseDataHelper,
         SessionManagerInterface $coreSession,
         ManagerInterface $manager,
@@ -69,7 +69,7 @@ class AuthClient extends AbstractHelper
         FormKey $formKey
     )
     {
-        $this->encryptInterface = $encrypt;
+        $this->encryptorInterface = $encrypt;
         $this->baseDataHelper = $baseDataHelper;
         $this->session = $coreSession;
         $this->logger = $logger;
@@ -114,7 +114,7 @@ class AuthClient extends AbstractHelper
      */
     public function getClientSecret($storeId = null)
     {
-        return $this->encryptInterface->decrypt($this->scopeConfig->getValue(
+        return $this->encryptorInterface->decrypt($this->scopeConfig->getValue(
             Constant::XML_PATH_WEB_SERVICE_CLIENTSECRET,
             $this->baseDataHelper->getStoreScope(),
             $storeId
@@ -267,7 +267,7 @@ class AuthClient extends AbstractHelper
      */
     public function getReturnUrl()
     {
-        return $this->_urlBuilder->getUrl('lslogin');
+        return $this->_urlBuilder->getUrl('lslogin/index/index/');
     }
 
     /**
