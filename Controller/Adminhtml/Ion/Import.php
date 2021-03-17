@@ -12,8 +12,8 @@
  *   except and only to the extent that such activity is expressly permitted by
  *    applicable law not withstanding this limitation.
  *
- *   @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
- *   @license     https://www.leanswift.com/end-user-licensing-agreement
+ * @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
+ * @license     https://www.leanswift.com/end-user-licensing-agreement
  *
  */
 
@@ -33,7 +33,6 @@ use Magento\Backend\App\Action\Context;
  */
 class Import extends Action
 {
-
     /**
      * @var Data
      */
@@ -60,7 +59,8 @@ class Import extends Action
         Data $data,
         Userrole $userRole,
         Erpapi $baseErpAPI
-    ) {
+    )
+    {
         $this->helper = $data;
         $this->roleResource = $userRole;
         $this->baseErpAPI = $baseErpAPI;

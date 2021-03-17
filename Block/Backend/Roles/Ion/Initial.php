@@ -12,8 +12,8 @@
  *   except and only to the extent that such activity is expressly permitted by
  *    applicable law not withstanding this limitation.
  *
- *   @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
- *   @license     https://www.leanswift.com/end-user-licensing-agreement
+ * @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
+ * @license     https://www.leanswift.com/end-user-licensing-agreement
  *
  */
 
@@ -66,7 +66,8 @@ class Initial extends Field
         RequestInterface $request,
         BaseDataHelper $baseDataHelper,
         array $data = []
-    ) {
+    )
+    {
         $this->_request = $request;
         $this->baseDataHelper = $baseDataHelper;
         parent::__construct($context, $data);
@@ -94,7 +95,7 @@ class Initial extends Field
     {
         $type = Constant::TYPE;
         $website = $this->_request->getParam('website');
-        $redirectUrl = $this->getRedirectUrl()."website/$website";
+        $redirectUrl = $this->getRedirectUrl() . "website/$website";
         $message = $this->getMessage();
         $timeZone = $this->baseDataHelper->getTimeZone();
         $lastUpdatedTime = $this->baseDataHelper->getLastUpdatedAtHistory($type) ?? '';
@@ -120,8 +121,7 @@ class Initial extends Field
      */
     public function getMessage()
     {
-        $message = "Are you sure you want to import user roles from M3?";
-        return $message;
+        return "Are you sure you want to import user roles from M3?";
     }
 
     /**
@@ -131,8 +131,7 @@ class Initial extends Field
      */
     public function getRedirectUrl()
     {
-        $url = $this->getUrl(self::ION_CONFIG_URL);
-        return $url;
+        return $this->getUrl(self::ION_CONFIG_URL);
     }
 
     /**
