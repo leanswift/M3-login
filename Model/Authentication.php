@@ -12,8 +12,8 @@
  *   except and only to the extent that such activity is expressly permitted by
  *    applicable law not withstanding this limitation.
  *
- *   @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
- *   @license     https://www.leanswift.com/end-user-licensing-agreement
+ * @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
+ * @license     https://www.leanswift.com/end-user-licensing-agreement
  *
  */
 
@@ -73,7 +73,8 @@ class Authentication
         CustomerRepositoryInterface $customerRepository,
         SessionManagerInterface $coreSession,
         Logger $logger
-    ) {
+    )
+    {
         $this->auth = $authClient;
         $this->customerFactory = $customerFactory;
         $this->customerRepo = $customerRepository;
@@ -81,19 +82,26 @@ class Authentication
         $this->logger = $logger;
     }
 
-    public function generateToken($code, $timeout=60)
+    /**
+     * @param $code
+     * @param int $timeout
+     * @return string
+     * @throws \Zend_Http_Client_Adapter_Exception
+     * @throws \Zend_Http_Client_Exception
+     */
+    public function generateToken($code, $timeout = 60)
     {
         $accessToken = '';
         $client = $this->auth->getClient();
         $url = $this->auth->getTokenLink();
-        if(!$url) {
+        if (!$url) {
             $this->logger->writeLog('Service URL for Token is not configured');
             return '';
         }
         $client->setUri($url);
         $clientId = $this->auth->getClientId();
         $clientSecret = $this->auth->getClientSecret();
-        if(!$clientId || !$clientSecret) {
+        if (!$clientId || !$clientSecret) {
             $this->logger->writeLog('Please Check Oauth credentials, there might be a problem on creating access token !');
             return '';
         }
@@ -130,29 +138,26 @@ class Authentication
     {
         $customerData = [];
         $mingleUrl = $this->auth->getMingleLink();
-        if(!$mingleUrl)
-        {
-          return '';
+        if (!$mingleUrl) {
+            return '';
         }
         $userDetailList = $this->getUserDetails($mingleUrl, $accessToken);
         if (!empty($userDetailList)) {
             $emailKey = $this->auth->getValidateEmail();
             $userCode = $userDetailList['UserName'];
-            $email = isset($userDetailList[$emailKey]) ? $userDetailList[$emailKey]: '';
+            $email = isset($userDetailList[$emailKey]) ? $userDetailList[$emailKey] : '';
             $firstName = $userDetailList['FirstName'];
             $lastName = $userDetailList['LastName'];
             $customerData = [
-                'email'     => $email,
+                'email' => $email,
                 'firstname' => $firstName,
-                'lastname'  => $lastName,
-                'username'  => ''
+                'lastname' => $lastName,
+                'username' => ''
             ];
             $isCloud = $this->auth->isCloudHost();
-            if($isCloud)
-            {
+            if ($isCloud) {
                 $customerData['username'] = $this->getUserNameDetail($accessToken, $userCode);
-            }
-            else {
+            } else {
                 $customerData['username'] = $userDetailList['PersonId'];
             }
             //$data['EUID'] = $userCode;
@@ -172,8 +177,7 @@ class Authentication
         $params['method'] = $method;
         $params['token'] = $accessToken;
         $responseBody = $this->sendRequest($params);
-        if(!empty($responseBody))
-        {
+        if (!empty($responseBody)) {
             return $responseBody['UserDetailList'][0];
         }
         return [];
@@ -186,23 +190,20 @@ class Authentication
      * @param string $userId
      * @return string
      */
-    public function getUserNameDetail($token, $userCode='', $method = Constant::GET_USER_BY_EUID, $userId= Constant::USID)
+    public function getUserNameDetail($token, $userCode = '', $method = Constant::GET_USER_BY_EUID, $userId = Constant::USID)
     {
         $userName = '';
         $params['url'] = $this->auth->getIonLink();
         $params['token'] = $token;
-        if($userCode)
-        {
-            $params['method'] = $method.$userCode;
-        }
-        else {
+        if ($userCode) {
+            $params['method'] = $method . $userCode;
+        } else {
             $params['method'] = $method;
         }
         $recordInfo = $this->sendRequest($params);
-        if(!empty($recordInfo))
-        {
+        if (!empty($recordInfo)) {
             array_walk_recursive($recordInfo, function ($value, $key) use (&$userName, &$userId) {
-                if($key == $userId) {
+                if ($key == $userId) {
                     $userName = $value;
                 }
             });
@@ -210,17 +211,16 @@ class Authentication
         return $userName;
     }
 
-    public function sendRequest($params, $requestType = 'GET', $timeout=20)
+    public function sendRequest($params, $requestType = 'GET', $timeout = 20)
     {
         $responseBody = false;
         $beforeTime = microtime(true);
         if (!isset($params['client'])) {
             $client = $this->auth->getClient();
-        }
-        else {
+        } else {
             $client = $params['client'];
         }
-        $url = $params['url'].$params['method'];
+        $url = $params['url'] . $params['method'];
         $accessToken = isset($params['token']) ? $params['token'] : $this->_coreSession->getAccessToken();
         $client->setUri($url);
         $client->setHeaders(
@@ -229,8 +229,7 @@ class Authentication
         $client->setHeaders(['accept' => 'application/json;charset=utf-8']);
         if (isset($params['data'])) {
             $data = json_encode($params['data']);
-        }
-        else {
+        } else {
             $data = '';
         }
         $client->setRawData($data, 'application/json');
@@ -252,18 +251,18 @@ class Authentication
         return $responseBody;
     }
 
-    public function requestToken($timeout=60)
+    public function requestToken($timeout = 60)
     {
         $accessToken = '';
         $client = $this->auth->getClient();
         $url = $this->auth->getOauthLink();
-        if(!$url) {
+        if (!$url) {
             return '';
         }
         $client->setUri($url);
         $clientId = $this->auth->getClientId();
         $clientSecret = $this->auth->getClientSecret();
-        if(!$clientId || !$clientSecret) {
+        if (!$clientId || !$clientSecret) {
             return '';
         }
         $credentials['client_id'] = $clientId;
@@ -271,7 +270,10 @@ class Authentication
         $credentials['grant_type'] = 'refresh_token';
         $credentials['refresh_token'] = $this->_coreSession->getRefreshToken();
         $client->setParameterPost($credentials);
-        $client->setConfig(['maxredirects' => 3, 'timeout' => $timeout]);
+        try {
+            $client->setConfig(['maxredirects' => 3, 'timeout' => $timeout]);
+        } catch (\Zend_Http_Client_Exception $e) {
+        }
         try {
             $response = $client->request('POST');
             if ($response->getStatus() == 200) {

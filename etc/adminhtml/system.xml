@@ -12,7 +12,7 @@
   ~   except and only to the extent that such activity is expressly permitted by
   ~    applicable law not withstanding this limitation.
   ~
-  ~   @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
+  ~   @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
   ~   @license     https://www.leanswift.com/end-user-licensing-agreement
   ~
   -->
@@ -44,6 +44,7 @@
                         <field id="enable_login">1</field>
                     </depends>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Possibility to log data to check request and response data, specially when developing]]></comment>
                 </field>
                 <field id="domain_name" translate="label" type="text" sortOrder="5" showInDefault="1">
                     <label>Internal user email domain(s)</label>
@@ -100,7 +101,7 @@
                        showInStore="0">
                     <label>M3 Roles &amp; Functions</label>
                     <frontend_model>LeanSwift\Login\Block\Backend\Roles\Ion\Initial</frontend_model>
-                    <comment><![CDATA[Initial load M3 Roles and associated security options (functions) from M3]]></comment>
+                    <comment><![CDATA[Initial load to pull the M3 Roles and it's associated security options (functions) from M3]]></comment>
                 </field>
             </group>
         </section>

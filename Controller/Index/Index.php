@@ -12,8 +12,8 @@
  *   except and only to the extent that such activity is expressly permitted by
  *    applicable law not withstanding this limitation.
  *
- *   @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
- *   @license     https://www.leanswift.com/end-user-licensing-agreement
+ * @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
+ * @license     https://www.leanswift.com/end-user-licensing-agreement
  *
  */
 
@@ -35,7 +35,6 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class Index extends Action
 {
-
     const PATH = 'customer/account/login';
 
     /**
@@ -69,7 +68,7 @@ class Index extends Action
     /**
      * @var string
      */
-    protected $redirectpath;
+    protected $redirectPath;
     /**
      * @var SessionManagerInterface
      */
@@ -98,7 +97,8 @@ class Index extends Action
         SessionManagerInterface $coreSession,
         Logger $logger,
         $redirectPath = self::PATH
-    ) {
+    )
+    {
         $this->helper = $data;
         $this->customerRepo = $customerRepo;
         $this->customerFactory = $customerFactory;
@@ -106,12 +106,16 @@ class Index extends Action
         $this->_coreSession = $coreSession;
         $this->storeManager = $storeManager;
         $this->logger = $logger;
-        $this->redirectpath = $redirectPath;
+        $this->redirectPath = $redirectPath;
         parent::__construct($context);
     }
 
     /**
      * @return ResponseInterface|ResultInterface|void
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws \Magento\Framework\Exception\State\InputMismatchException
      */
     public function execute()
     {
@@ -120,7 +124,7 @@ class Index extends Action
         try {
             if ($info && array_key_exists('code', $info)) {
                 $code = $info['code'];
-                if(!$code) {
+                if (!$code) {
                     throw new \Exception('Authentication code is not present');
                 }
                 $accessToken = $this->helper->authModel()->generateToken($code);
@@ -132,8 +136,7 @@ class Index extends Action
             } else {
                 throw new \Exception('Authentication failed from M3');
             }
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             $this->logger->writeLog($e->getMessage());
             $this->messageManager->addErrorMessage('Authentication failed');
         }
@@ -141,7 +144,7 @@ class Index extends Action
         $this->_redirect($this->getRedirectPath());
     }
 
-    public function logincustomer($email)
+    public function loginCustomer($email)
     {
         $customerRepo = $this->customerRepo->get($email);                    //load with email
         $customer = $this->customerFactory->create()->load($customerRepo->getId());     //get the customer model by id
@@ -153,15 +156,14 @@ class Index extends Action
         $userDetails = $this->helper->authModel()->getUserName($accessToken);
         if (!empty($userDetails)) {
             if (array_key_exists('username', $userDetails) && array_key_exists('email', $userDetails)) {
-                if(!$userDetails['email'])
-                {
+                if (!$userDetails['email']) {
                     throw new \Exception('Email is not configured in M3');
                 }
-                if(!$this->validateEmail($userDetails['email'])) {
+                if (!$this->validateEmail($userDetails['email'])) {
                     throw new \Exception('Email entered is different from the M3 email');
                 }
                 try {
-                    $this->logincustomer($userDetails['email']);
+                    $this->loginCustomer($userDetails['email']);
                 } catch (Exception $e) {
                     $this->createCustomer($userDetails);
                 }
@@ -182,7 +184,7 @@ class Index extends Action
     public function validateEmail($email)
     {
         $loginCustomerEmail = $this->_coreSession->getEmail();
-        return  (strcasecmp($loginCustomerEmail, $email) == 0);
+        return (strcasecmp($loginCustomerEmail, $email) == 0);
     }
 
     public function createCustomer($userDetailList)
@@ -211,7 +213,7 @@ class Index extends Action
             $customerInfo = $this->customerRepo->getById($customerId);
             $customerInfo->setCustomAttribute('username', $username);
             $this->customerRepo->save($customerInfo);
-            $this->logincustomer($email);
+            $this->loginCustomer($email);
             $userInfo = $this->helper->erpapi()->getUserRoles($username);
             $this->helper->erpapi()->updateuser($username, $userInfo);
         } catch (Exception $e) {
@@ -223,7 +225,6 @@ class Index extends Action
     /**
      * Add authentication code to logged in customer
      *
-     * @param $customerId
      * @param $authCode
      * @throws \Magento\Framework\Exception\InputException
      * @throws \Magento\Framework\Exception\LocalizedException
@@ -232,7 +233,7 @@ class Index extends Action
      */
     public function addAuthenticationCode($authCode)
     {
-        if($this->customerSession->isLoggedIn()) {
+        if ($this->customerSession->isLoggedIn()) {
             $customerInfo = $this->customerSession->getCustomerData()->setCustomAttribute(
                 'authentication_code',
                 $authCode
@@ -246,6 +247,6 @@ class Index extends Action
      */
     public function getRedirectPath()
     {
-        return $this->redirectpath;
+        return $this->redirectPath;
     }
 }

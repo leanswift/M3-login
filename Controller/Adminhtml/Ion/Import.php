@@ -12,20 +12,19 @@
  *   except and only to the extent that such activity is expressly permitted by
  *    applicable law not withstanding this limitation.
  *
- *   @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
- *   @license     https://www.leanswift.com/end-user-licensing-agreement
+ * @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
+ * @license     https://www.leanswift.com/end-user-licensing-agreement
  *
  */
 
 namespace LeanSwift\Login\Controller\Adminhtml\Ion;
 
-use LeanSwift\Econnect\Helper\Erpapi;
+use LeanSwift\EconnectBase\Helper\Erpapi;
 use LeanSwift\Login\Helper\Constant;
 use LeanSwift\Login\Helper\Data;
 use LeanSwift\Login\Model\ResourceModel\Userrole;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\Registry;
 
 /**
  * Class Import
@@ -34,7 +33,6 @@ use Magento\Framework\Registry;
  */
 class Import extends Action
 {
-
     /**
      * @var Data
      */
@@ -47,25 +45,25 @@ class Import extends Action
     /**
      * @var Erpapi|Data
      */
-    protected $econnectErpAPI;
+    protected $baseErpAPI;
 
     /**
      * Import constructor.
-     *
-     * @param Context  $context
-     * @param Registry $coreRegistry
-     * @param Data     $erpapi
-     * @param Userrole $userrole
+     * @param Context $context
+     * @param Data $data
+     * @param Userrole $userRole
+     * @param Erpapi $baseErpAPI
      */
     public function __construct(
         Context $context,
         Data $data,
-        Userrole $userrole,
-        Erpapi $erpapi
-    ) {
+        Userrole $userRole,
+        Erpapi $baseErpAPI
+    )
+    {
         $this->helper = $data;
-        $this->roleResource = $userrole;
-        $this->econnectErpAPI = $erpapi;
+        $this->roleResource = $userRole;
+        $this->baseErpAPI = $baseErpAPI;
         parent::__construct($context);
     }
 
@@ -86,7 +84,7 @@ class Import extends Action
         if ($rolesInfo && $flag) {
             $flag = $this->roleResource->updateRoleInfo($rolesInfo);
         }
-        $message = $this->econnectErpAPI->getInitialLoadMessage(Constant::TYPE);
+        $message = $this->baseErpAPI->getInitialLoadMessage(Constant::TYPE);
         $resultRedirect = $this->resultRedirectFactory->create();
         if ($flag) {
             $this->roleResource->updateImportHistory();

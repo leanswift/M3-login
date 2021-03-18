@@ -12,22 +12,21 @@
  *   except and only to the extent that such activity is expressly permitted by
  *    applicable law not withstanding this limitation.
  *
- *   @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
- *   @license     https://www.leanswift.com/end-user-licensing-agreement
+ * @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
+ * @license     https://www.leanswift.com/end-user-licensing-agreement
  *
  */
 
 namespace LeanSwift\Login\Model\ResourceModel;
 
 use Exception;
-use LeanSwift\Econnect\Model\Importhistory;
+use LeanSwift\EconnectBase\Model\Importhistory;
 use LeanSwift\Login\Helper\Constant;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 use Magento\Framework\Model\ResourceModel\Db\Context;
 
 /**
  * Class Userrole
- *
  * @package LeanSwift\Login\Model\ResourceModel
  */
 class Userrole extends AbstractDb
@@ -39,11 +38,11 @@ class Userrole extends AbstractDb
 
     public function __construct(
         Context $context,
-        Importhistory $importhistory,
+        Importhistory $importHistory,
         $connectionName = null
     )
     {
-        $this->importHistory = $importhistory;
+        $this->importHistory = $importHistory;
         parent::__construct($context, $connectionName);
     }
 

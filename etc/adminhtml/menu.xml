@@ -12,16 +12,17 @@
   ~   except and only to the extent that such activity is expressly permitted by
   ~    applicable law not withstanding this limitation.
   ~
-  ~   @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
+  ~   @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
   ~   @license     https://www.leanswift.com/end-user-licensing-agreement
   ~
   -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
     <menu>
-        <add id="LeanSwift_Login::login_config" title="Login" module="LeanSwift_Login"
-             sortOrder="10" parent="LeanSwift_Econnect::econnect_addons"
-             action="adminhtml/system_config/edit/section/leanswift_login"
-             resource="LeanSwift_Login::login_config"/>
+        <add id="LeanSwift_Login::login_settings" title="M3 Login" module="LeanSwift_Login"
+             sortOrder="120" parent="LeanSwift_EconnectBase::leanswift" resource="LeanSwift_Login::login_settings"/>
+        <add id="LeanSwift_Login::general_configuration" title="Settings" translate="title"
+             module="LeanSwift_Login" sortOrder="120" parent="LeanSwift_Login::login_settings"
+             action="adminhtml/system_config/edit/section/leanswift_login" resource="LeanSwift_Login::general_configuration"/>
     </menu>
 </config>

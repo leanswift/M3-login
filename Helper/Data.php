@@ -1,9 +1,9 @@
 <?php
 /**
  *  LeanSwift Login Extension
- *  
+ *
  *  DISCLAIMER
- *  
+ *
  *   This extension is licensed and distributed by LeanSwift. Do not edit or add
  *   to this file if you wish to upgrade Extension and Connector to newer
  *   versions in the future. If you wish to customize Extension for your needs
@@ -12,9 +12,9 @@
  *   except and only to the extent that such activity is expressly permitted by
  *    applicable law not withstanding this limitation.
  *
- *   @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
+ *   @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
  *   @license     https://www.leanswift.com/end-user-licensing-agreement
- *  
+ *
  */
 
 namespace LeanSwift\Login\Helper;
@@ -25,7 +25,7 @@ use Magento\Framework\App\Helper\Context;
 
 class Data extends AbstractHelper
 {
-    const VERSION_LABEL = 'M3 LOGIN';
+    const VERSION_LABEL = 'M3 Login';
     const VERSION = '1.0.0';
 
     private $authClient;
@@ -34,13 +34,19 @@ class Data extends AbstractHelper
 
     private $erpApi;
 
+    /**
+     * Data constructor.
+     * @param Context $context
+     * @param Erpapi $erpApi
+     * @param Authentication $authentication
+     */
     public function __construct(
         Context $context,
-        Erpapi $erpapi,
+        Erpapi $erpApi,
         Authentication $authentication
     ) {
         $this->authModel = $authentication;
-        $this->erpApi = $erpapi;
+        $this->erpApi = $erpApi;
         parent::__construct($context);
     }
 

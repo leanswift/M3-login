@@ -12,8 +12,8 @@
  *   except and only to the extent that such activity is expressly permitted by
  *    applicable law not withstanding this limitation.
  *
- *   @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
- *   @license     https://www.leanswift.com/end-user-licensing-agreement
+ * @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
+ * @license     https://www.leanswift.com/end-user-licensing-agreement
  *
  */
 
@@ -22,7 +22,9 @@ namespace LeanSwift\Login\Helper;
 use Exception;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Data\Form\FormKey;
 use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
 
@@ -35,41 +37,41 @@ class AuthClient extends AbstractHelper
     /**
      * @var EncryptorInterface
      */
-    protected $_encryptorInterface;
+    protected $encryptorInterface;
     /**
-     * @var \LeanSwift\Econnect\Helper\Data
+     * @var \LeanSwift\EconnectBase\Helper\Data
      */
-    protected $_dataHelper;
+    protected $baseDataHelper;
     /**
      * @var SessionManagerInterface
      */
-    protected $_session;
+    protected $session;
     /**
      * @var ManagerInterface
      */
     protected $messageManager;
     /**
-     * @var \Monolog\Logger
+     * @var Logger
      */
     protected $logger;
     /**
-     * @var \Magento\Framework\Data\Form\FormKey
+     * @var FormKey
      */
     protected $formKey;
 
     public function __construct(
         Context $context,
-        EncryptorInterface $encryptor,
-        \LeanSwift\Econnect\Helper\Data $helper,
+        \Magento\Framework\Encryption\EncryptorInterface $encrypt,
+        \LeanSwift\EconnectBase\Helper\Data $baseDataHelper,
         SessionManagerInterface $coreSession,
         ManagerInterface $manager,
         Logger $logger,
-        \Magento\Framework\Data\Form\FormKey $formKey
+        FormKey $formKey
     )
     {
-        $this->_encryptorInterface = $encryptor;
-        $this->_dataHelper = $helper;
-        $this->_session = $coreSession;
+        $this->encryptorInterface = $encrypt;
+        $this->baseDataHelper = $baseDataHelper;
+        $this->session = $coreSession;
         $this->logger = $logger;
         $this->messageManager = $manager;
         $this->formKey = $formKey;
@@ -89,8 +91,8 @@ class AuthClient extends AbstractHelper
             'ssl' => [
                 // Verify server side certificate,
                 // do not accept invalid or self-signed SSL certificates
-                'verify_peer'       => false,
-                'verify_peer_name'  => false,
+                'verify_peer' => false,
+                'verify_peer_name' => false,
                 'allow_self_signed' => false,
                 // Capture the peer's certificate
                 'capture_peer_cert' => false,
@@ -112,9 +114,9 @@ class AuthClient extends AbstractHelper
      */
     public function getClientSecret($storeId = null)
     {
-        return $this->_encryptorInterface->decrypt($this->scopeConfig->getValue(
+        return $this->encryptorInterface->decrypt($this->scopeConfig->getValue(
             Constant::XML_PATH_WEB_SERVICE_CLIENTSECRET,
-            $this->_dataHelper->getStoreScope(),
+            $this->baseDataHelper->getStoreScope(),
             $storeId
         ));
     }
@@ -133,19 +135,23 @@ class AuthClient extends AbstractHelper
      */
     public function getOauthLink()
     {
-        $oauthURL = $this->getTokenURL();
-        if(!$oauthURL) {
-            $this->logger->writeLog('Service URL for Token is not configured');
-            return  '';
+        try {
+            $oauthURL = $this->getTokenURL();
+            if (!$oauthURL) {
+                $this->logger->writeLog('Service URL for Token is not configured');
+                return '';
+            }
+            $clientId = $this->getClientId();
+            if (!$clientId) {
+                $this->logger->writeLog('Client ID is not configured');
+                return '';
+            }
+            $params = $this->getAuthorizingURLParams();
+            $param = "$params[0]?client_id=$clientId&max_age=20&prompt=login&nonce=NONCE&response_type=code&$params[1]&state=" . $this->getFormKey();
+            return $oauthURL . $param;
+        } catch (LocalizedException $e) {
+
         }
-        $clientId = $this->getClientId();
-        if(!$clientId) {
-            $this->logger->writeLog('Client ID is not configured');
-            return  '';
-        }
-        $params = $this->getAuthorizingURLParams();
-        $param = "$params[0]?client_id=$clientId&max_age=20&prompt=login&nonce=NONCE&response_type=code&$params[1]&state=".$this->getFormKey();
-        return $oauthURL . $param;
     }
 
     /**
@@ -159,7 +165,7 @@ class AuthClient extends AbstractHelper
     {
         return $this->scopeConfig->getValue(
             Constant::XML_PATH_WEB_SERVICE_CLIENTID,
-            $this->_dataHelper->getStoreScope(),
+            $this->baseDataHelper->getStoreScope(),
             $storeId
         );
     }
@@ -170,15 +176,14 @@ class AuthClient extends AbstractHelper
     public function getTokenLink()
     {
         $tokenURL = $this->getTokenURL();
-        if(!$tokenURL) {
-            return  '';
+        if (!$tokenURL) {
+            return '';
         }
         $isCloud = $this->isCloudHost();
         //if it cloud environment
         if ($isCloud) {
             $token = '/token.oauth2';
-        }
-        //if it is on-premise environment
+        } //if it is on-premise environment
         else {
             $token = '/connect/token';
         }
@@ -217,7 +222,7 @@ class AuthClient extends AbstractHelper
 
     public function getAccessToken($storeId = null)
     {
-        return $this->_session->getAccessToken();
+        return $this->session->getAccessToken();
     }
 
     public function getRequestToken()
@@ -225,19 +230,19 @@ class AuthClient extends AbstractHelper
         $accessToken = '';
         $client = $this->getClient();
         $url = $this->getOauthLink();
-        if(!$url) {
+        if (!$url) {
             return '';
         }
         $client->setUri($url);
         $clientId = $this->getClientId();
         $clientSecret = $this->getClientSecret();
-        if(!$clientId || !$clientSecret) {
+        if (!$clientId || !$clientSecret) {
             return '';
         }
         $credentials['client_id'] = $clientId;
         $credentials['client_secret'] = $clientSecret;
         $credentials['grant_type'] = 'refresh_token';
-        $credentials['refresh_token'] = $this->_session->getRefreshToken();
+        $credentials['refresh_token'] = $this->session->getRefreshToken();
         $client->setParameterPost($credentials);
         $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);
         try {
@@ -248,8 +253,8 @@ class AuthClient extends AbstractHelper
                 $accessToken = $responseBody['access_token'];
                 $refreshToken = $responseBody['refresh_token'];
                 $this->logger->writeLogInfo('New access token : ' . $accessToken);
-                $this->_session->setAccessToken($accessToken);
-                $this->_session->setRefreshToken($refreshToken);
+                $this->session->setAccessToken($accessToken);
+                $this->session->setRefreshToken($refreshToken);
             }
         } catch (Exception $e) {
             $this->logger->writeLog('API request failed' . $e->getMessage());
@@ -262,7 +267,7 @@ class AuthClient extends AbstractHelper
      */
     public function getReturnUrl()
     {
-        return $this->_urlBuilder->getUrl('lslogin');
+        return $this->_urlBuilder->getUrl('lslogin/index/index/');
     }
 
     /**
@@ -289,8 +294,7 @@ class AuthClient extends AbstractHelper
         if ($isCloud) {
             $authorize = '/authorization.oauth2';
             $redirect = "redirect_url=$returnUrl";
-        }
-        //if it is on-premise environment
+        } //if it is on-premise environment
         else {
             $authorize = '/connect/authorize';
             $redirect = "redirect_uri=$returnUrl";
@@ -300,11 +304,14 @@ class AuthClient extends AbstractHelper
 
     /**
      * @return string
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getFormKey()
     {
-        return $this->formKey->getFormKey();
+        try {
+            return $this->formKey->getFormKey();
+        } catch (LocalizedException $e) {
+            $this->logger->writeLog($e->getMessage());
+        }
     }
 
 }
