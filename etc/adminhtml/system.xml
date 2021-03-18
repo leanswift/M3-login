@@ -73,12 +73,12 @@
                     <validate>validate-url</validate>
                     <comment><![CDATA[URL for accessing Mingle API]]></comment>
                 </field>
-                <field id="service_url" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="0"
-                       showInStore="0">
-                    <label>Service URL for Token</label>
-                    <validate>validate-url</validate>
-                    <comment><![CDATA[ URL to generate token for accessing ION API]]></comment>
-                </field>
+<!--                <field id="service_url" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="0"-->
+<!--                       showInStore="0">-->
+<!--                    <label>Service URL for Token</label>-->
+<!--                    <validate>validate-url</validate>-->
+<!--                    <comment><![CDATA[ URL to generate token for accessing ION API]]></comment>-->
+<!--                </field>-->
                 <field id="web_service_clientid" translate="label" type="text" sortOrder="3" showInDefault="1"
                        showInWebsite="0" showInStore="0">
                     <label>Client Id</label>
