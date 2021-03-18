@@ -35,7 +35,7 @@
                        showInDefault="1">
                     <label>Enable Login</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Choose an option to enable or disable the m3-login]]></comment>
+                    <comment><![CDATA[Enable option to disable magento product]]></comment>
                 </field>
                 <field id="log" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="0"
                        showInStore="0">

@@ -25,7 +25,7 @@ use Magento\Framework\App\Helper\Context;
 
 class Data extends AbstractHelper
 {
-    const VERSION_LABEL = 'M3 LOGIN';
+    const VERSION_LABEL = 'M3 Login';
     const VERSION = '1.0.0';
 
     private $authClient;

@@ -19,7 +19,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
     <menu>
-        <add id="LeanSwift_Login::login_settings" title="Login" module="LeanSwift_Login"
+        <add id="LeanSwift_Login::login_settings" title="M3 Login" module="LeanSwift_Login"
              sortOrder="120" parent="LeanSwift_EconnectBase::leanswift" resource="LeanSwift_Login::login_settings"/>
         <add id="LeanSwift_Login::general_configuration" title="Settings" translate="title"
              module="LeanSwift_Login" sortOrder="120" parent="LeanSwift_Login::login_settings"
