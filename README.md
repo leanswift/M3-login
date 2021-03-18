@@ -115,4 +115,4 @@ Now the module will install under the **/vendor/leanswift/module-login/** folder
             
   Now the module is enabled in the backend and you can view the configuration under the below menu.
    
-        Admin -> LeanSwift -> Login -> Settings.
+        Admin -> LeanSwift -> M3 Login -> Settings.
