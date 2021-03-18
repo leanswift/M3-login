@@ -32,7 +32,6 @@ use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
 use Magento\Framework\Xml\Parser;
 use LeanSwift\EconnectBase\Model\Parser as BaseParser;
-use Magento\Framework\Serialize\Serializer\Json;
 
 /**
  * Class IonAbstractModel
@@ -48,10 +47,6 @@ abstract class IonAbstractModel extends AbstractExtensibleModel
      * @var BaseParser
      */
     protected $baseParser;
-    /**
-     * @var Json
-     */
-    protected $serializer;
     /**
      * @var Erpapi
      */
@@ -69,7 +64,6 @@ abstract class IonAbstractModel extends AbstractExtensibleModel
      * @param AttributeValueFactory $customAttributeFactory
      * @param BaseParser $baseParser
      * @param Parser $parser
-     * @param Json $serializer
      * @param Erpapi $erpApiHelper
      * @param Logger $logger
      * @param AbstractResource|null $resource
@@ -83,7 +77,6 @@ abstract class IonAbstractModel extends AbstractExtensibleModel
         AttributeValueFactory $customAttributeFactory,
         BaseParser $baseParser,
         Parser $parser,
-        Json $serializer,
         Erpapi $erpApiHelper,
         Logger $logger,
         AbstractResource $resource = null,
@@ -93,7 +86,6 @@ abstract class IonAbstractModel extends AbstractExtensibleModel
     {
         $this->baseParser = $baseParser;
         $this->_xmlParser = $parser;
-        $this->serializer = $serializer;
         $this->erpApiHelper = $erpApiHelper;
         $this->logger = $logger;
         parent::__construct(
@@ -105,6 +97,11 @@ abstract class IonAbstractModel extends AbstractExtensibleModel
             $resourceCollection,
             $data
         );
+    }
+
+    public function getSerializerObject()
+    {
+        return $this->erpApiHelper->getSerializerObject();
     }
 
     /**

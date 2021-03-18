@@ -27,6 +27,7 @@ namespace LeanSwift\Login\Helper;
 use LeanSwift\Login\Model\ResourceModel\Userrole;
 use LeanSwift\EconnectBase\Helper\Erpapi as BaseErpApi;
 use LeanSwift\EconnectBase\Helper\Constant;
+use Magento\Framework\Serialize\SerializerInterface as Json;
 
 /**
  * Class Erpapi
@@ -71,6 +72,11 @@ class Erpapi
         $this->serialize = $serialize;
         $this->userrole = $userroleResource;
         $this->baseErpApi = $baseErpApi;
+    }
+
+    public function getSerializerObject()
+    {
+        return $this->serialize;
     }
 
     public function getUserRoles($username)

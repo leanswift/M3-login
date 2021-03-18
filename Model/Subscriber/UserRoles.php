@@ -85,6 +85,6 @@ class UserRoles extends IonAbstractModel implements SubscriberInterface
     public function _prepareData($userRoleData)
     {
         $data = $userRoleData['LSUserRoleList'];
-        return $this->serializer->serialize($data);
+        return $this->getSerializerObject()->serialize($data);
     }
 }
