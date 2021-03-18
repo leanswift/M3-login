@@ -22,52 +22,14 @@ namespace LeanSwift\Login\Model\Subscriber;
 use Exception;
 use LeanSwift\EconnectBase\Api\MessageInterface;
 use LeanSwift\EconnectBase\Api\SubscriberInterface;
-use LeanSwift\Econnect\Helper\Ion;
-use LeanSwift\Econnect\Model\Subscriber\IonAbstractModel;
 use LeanSwift\Login\Helper\Constant;
-use LeanSwift\Login\Helper\Erpapi as LoginHelper;
-use Magento\Framework\Xml\Parser;
 
 /**
  * Class UserRoles
- *
  * @package LeanSwift\Login\Model\Subscriber
  */
 class UserRoles extends IonAbstractModel implements SubscriberInterface
 {
-
-    /**
-     * @var Data
-     */
-    protected $apihelper;
-
-    /**
-     * @var XMLParser
-     */
-    protected $_xmlParser;
-
-    /**
-     * @var Ion
-     */
-    protected $_helper;
-
-    /**
-     * UserRoles constructor.
-     *
-     * @param Ion         $helperData
-     * @param Parser      $parser
-     * @param LoginHelper $loginhelper
-     */
-    public function __construct(
-        Ion $helperData,
-        Parser $parser,
-        LoginHelper $loginhelper
-    ) {
-        $this->apihelper = $loginhelper;
-        $this->_xmlParser = $parser;
-        $this->_helper = $helperData;
-    }
-
     /**
      * Process the message from Queue
      *
@@ -77,7 +39,7 @@ class UserRoles extends IonAbstractModel implements SubscriberInterface
      */
     public function processMessage(MessageInterface $message)
     {
-        $consumerMessage = $this->_helper->utf8_for_xml(base64_decode($message->getMessage()));
+        $consumerMessage = $this->erpApiHelper->utf8_for_xml(base64_decode($message->getMessage()));
 
         try {
             $this->_xmlParser->loadXML($consumerMessage);
@@ -85,9 +47,9 @@ class UserRoles extends IonAbstractModel implements SubscriberInterface
             $parsedXML = $this->_xmlParser->xmlToArray();
 
             if ($parsedXML) {
-                $atpQueue = [Constant::SyncLSUserRoles];
-                $atpQueueData = $this->getDataFromParsedXML($atpQueue, $parsedXML);
-                $dataAreaSection = $this->getDataArea($atpQueueData);
+                $rolesQueue = [Constant::SyncLSUserRoles];
+                $rolesQueueData = $this->getDataFromParsedXML($rolesQueue, $parsedXML);
+                $dataAreaSection = $this->getDataArea($rolesQueueData);
 
                 $bodType = [Constant::Sync];
                 $bodData = $this->getDataFromParsedXML($bodType, $dataAreaSection);
@@ -96,28 +58,33 @@ class UserRoles extends IonAbstractModel implements SubscriberInterface
                     return false;
                 }
                 $dataArea = [Constant::LSUserRoles];
+                $bodName = $this->getBodName($dataArea, $dataAreaSection);
                 $userResponseData = $this->getDataFromParsedXML($dataArea, $dataAreaSection);
-                //Prepare Stock Data
+                $bodDetails = $this->getBodData($rolesQueueData, $userResponseData);
+                $bodId = ($bodDetails && array_key_exists(Constant::BOD_ID, $bodDetails))
+                    ? $bodDetails[Constant::BOD_ID] : null;
+                $variationId = $this->dataParser($userResponseData, Constant::UserRoles_VariationId);
+                $this->logger->writeLog($bodName . ' - ' . $bodId . ' - ' . $variationId);
+                //Prepare Data
                 $username = $userResponseData['LSUserRolesHeader']['DocumentID']['ID']['_value'];
                 $userData = $this->_prepareData($userResponseData);
-                $this->apihelper->updateuser($username, $userData);
+                $this->erpApiHelper->updateuser($username, $userData);
             }
         } catch (Exception $e) {
-            $this->_helper->writeLog($e->getMessage(), false, null, 'catalog');
+            $this->logger->writeLog($e->getMessage());
             return false;
         }
     }
 
     /**
-     * Prepares data from AvailableToPromise BOD
+     * Prepares data from UserRoles BOD
      *
-     * @param $atpData
-     *
+     * @param $userRoleData
      * @return mixed
      */
     public function _prepareData($userRoleData)
     {
         $data = $userRoleData['LSUserRoleList'];
-        return $this->_helper->getSerializeObject()->serialize($data);
+        return $this->serializer->serialize($data);
     }
 }

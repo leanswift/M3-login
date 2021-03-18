@@ -27,7 +27,6 @@ namespace LeanSwift\Login\Helper;
 use LeanSwift\Login\Model\ResourceModel\Userrole;
 use LeanSwift\EconnectBase\Helper\Erpapi as BaseErpApi;
 use LeanSwift\EconnectBase\Helper\Constant;
-use Magento\Framework\Serialize\Serializer\Json;
 
 /**
  * Class Erpapi
@@ -190,5 +189,22 @@ class Erpapi
     public function userRoleModel()
     {
         return $this->userrole;
+    }
+
+    /**
+     * Format the XML
+     *
+     * @param $string
+     * @return string|string[]|null
+     */
+    public function utf8_for_xml($string)
+    {
+        $string = preg_replace('/[[:^print:]]/', '', $string);
+
+        return preg_replace(
+            '/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u',
+            ' ',
+            $string
+        );
     }
 }

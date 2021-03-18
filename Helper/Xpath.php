@@ -21,10 +21,13 @@ namespace LeanSwift\Login\Helper;
 
 /**
  * Class Xpath
- *
  * @package LeanSwift\Login\Helper
  */
 class Xpath
 {
-
+    const UserRoles_VariationId = "LSUserRolesHeader/DocumentID/ID/@variationID";
+    const BOD_ID_PATH = 'ApplicationArea/BODID';
+    const CREATION_DATE_TIME = 'ApplicationArea/CreationDateTime';
+    const ACTION_PATH = 'ActionCriteria/ActionExpression/_attribute/actionCode';
+    const DATA_AREA_PATH = '_value/DataArea';
 }

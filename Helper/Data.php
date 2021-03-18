@@ -22,6 +22,7 @@ namespace LeanSwift\Login\Helper;
 use LeanSwift\Login\Model\Authentication;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Serialize\SerializerInterface as Json;
 
 class Data extends AbstractHelper
 {
@@ -35,18 +36,26 @@ class Data extends AbstractHelper
     private $erpApi;
 
     /**
+     * @var Json
+     */
+    protected $serialize;
+
+    /**
      * Data constructor.
      * @param Context $context
      * @param Erpapi $erpApi
      * @param Authentication $authentication
+     * @param Json $serialize
      */
     public function __construct(
         Context $context,
         Erpapi $erpApi,
-        Authentication $authentication
+        Authentication $authentication,
+        Json $serialize
     ) {
         $this->authModel = $authentication;
         $this->erpApi = $erpApi;
+        $this->serialize = $serialize;
         parent::__construct($context);
     }
 
