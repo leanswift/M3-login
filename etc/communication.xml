@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+  ~  LeanSwift Login Extension
+  ~
+  ~  DISCLAIMER
+  ~
+  ~   This extension is licensed and distributed by LeanSwift. Do not edit or add
+  ~   to this file if you wish to upgrade Extension and Connector to newer
+  ~   versions in the future. If you wish to customize Extension for your needs
+  ~   please contact LeanSwift for more information. You may not reverse engineer,
+  ~   decompile, or disassemble LeanSwift Login Extension (All Versions),
+  ~   except and only to the extent that such activity is expressly permitted by
+  ~    applicable law not withstanding this limitation.
+  ~
+  ~   @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
+  ~   @license     https://www.leanswift.com/end-user-licensing-agreement
+  ~
+  -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/queue.xsd">
+    <topic name="leanswift.econnect.userroles.sync.queue" request="LeanSwift\EconnectBase\Api\MessageInterface">
+        <handler name="leanswift.econnect.userroles.sync.handler" type="LeanSwift\EconnectBase\Api\SubscriberInterface"
+                 method="processMessage"/>
+    </topic>
+</config>

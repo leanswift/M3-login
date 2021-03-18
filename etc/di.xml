@@ -58,4 +58,13 @@
             </argument>
         </arguments>
     </type>
+
+    <type name="LeanSwift\EconnectBase\Helper\QueueProcessor">
+        <arguments>
+            <argument name="queueList" xsi:type="array">
+                <!-- LS User Roles BOD -->
+                <item name="SyncLSUserRoles" xsi:type="string">leanswift.econnect.userroles.sync.queue</item>
+            </argument>
+        </arguments>
+    </type>
 </config>
