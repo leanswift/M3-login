@@ -252,7 +252,7 @@ class AuthClient extends AbstractHelper
                 $responseBody = json_decode($parsedResult, true);
                 $accessToken = $responseBody['access_token'];
                 $refreshToken = $responseBody['refresh_token'];
-                $this->logger->writeLogInfo('New access token : ' . $accessToken);
+//                $this->logger->writeLogInfo('New access token : ' . $accessToken);
                 $this->session->setAccessToken($accessToken);
                 $this->session->setRefreshToken($refreshToken);
             }

@@ -121,7 +121,7 @@ class Initial extends Field
      */
     public function getMessage()
     {
-        return "Are you sure you want to import user roles from M3?";
+        return "Are you sure you want to import user roles data from M3?";
     }
 
     /**

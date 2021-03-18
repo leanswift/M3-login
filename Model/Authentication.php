@@ -119,7 +119,7 @@ class Authentication
                 $responseBody = json_decode($parsedResult, true);
                 $accessToken = $responseBody['access_token'];
                 $refreshToken = $responseBody['refresh_token'];
-                $this->logger->writeLog('New access token : ' . $accessToken);
+//                $this->logger->writeLog('New access token : ' . $accessToken);
                 $this->_coreSession->start();
                 $this->_coreSession->setAccessToken($accessToken);
                 $this->_coreSession->setRefreshToken($refreshToken);
@@ -281,7 +281,7 @@ class Authentication
                 $responseBody = json_decode($parsedResult, true);
                 $accessToken = $responseBody['access_token'];
                 $refreshToken = $responseBody['refresh_token'];
-                $this->logger->writeLog('New access token : ' . $accessToken);
+//                $this->logger->writeLog('New access token : ' . $accessToken);
                 $this->_coreSession->setAccessToken($accessToken);
                 $this->_coreSession->setRefreshToken($refreshToken);
             }

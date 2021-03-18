@@ -101,7 +101,7 @@
                        showInStore="0">
                     <label>M3 Roles &amp; Functions</label>
                     <frontend_model>LeanSwift\Login\Block\Backend\Roles\Ion\Initial</frontend_model>
-                    <comment><![CDATA[Initial load to pull the M3 Roles and it's associated security options (functions) from M3]]></comment>
+                    <comment><![CDATA[M3 Roles and associated security options (functions)]]></comment>
                 </field>
             </group>
         </section>
