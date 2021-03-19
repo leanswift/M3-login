@@ -16,9 +16,8 @@
   ~   @license     https://www.leanswift.com/end-user-licensing-agreement
   ~
   -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/queue.xsd">
-    <topic name="leanswift.login.userroles.sync.queue" request="LeanSwift\EconnectBase\Api\MessageInterface">
-        <handler name="leanswift.econnect.userroles.sync.handler" type="LeanSwift\EconnectBase\Api\SubscriberInterface" method="processMessage"/>
-    </topic>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/topology.xsd">
+    <exchange name="magento" type="topic" connection="amqp-leanswift">
+        <binding id="userRolesSyncBinding" topic="leanswift.login.userroles.sync.queue" destinationType="queue" destination="leanswift.login.userroles.sync.queue"/>
+    </exchange>
 </config>

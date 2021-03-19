@@ -18,6 +18,5 @@
   -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/consumer.xsd">
-    <consumer name="userrolesSync" queue="leanswift.econnect.userroles.sync.queue" connection="amqp"
-              handler="LeanSwift\Login\Model\Subscriber\UserRoles::processMessage"/>
+    <consumer name="userRolesSync" queue="leanswift.login.userroles.sync.queue" connection="amqp-leanswift" handler="LeanSwift\Login\Model\Subscriber\UserRoles::processMessage"/>
 </config>

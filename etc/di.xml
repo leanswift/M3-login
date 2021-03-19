@@ -63,7 +63,7 @@
         <arguments>
             <argument name="queueList" xsi:type="array">
                 <!-- LS User Roles BOD -->
-                <item name="SyncLSUserRoles" xsi:type="string">leanswift.econnect.userroles.sync.queue</item>
+                <item name="SyncLSUserRoles" xsi:type="string">leanswift.login.userroles.sync.queue</item>
             </argument>
         </arguments>
     </type>
