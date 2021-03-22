@@ -23,6 +23,7 @@ use Exception;
 use LeanSwift\EconnectBase\Api\MessageInterface;
 use LeanSwift\EconnectBase\Api\SubscriberInterface;
 use LeanSwift\Login\Helper\Constant;
+use LeanSwift\Login\Helper\Xpath;
 
 /**
  * Class UserRoles
@@ -63,7 +64,7 @@ class UserRoles extends IonAbstractModel implements SubscriberInterface
                 $bodDetails = $this->getBodData($rolesQueueData, $userResponseData);
                 $bodId = ($bodDetails && array_key_exists(Constant::BOD_ID, $bodDetails))
                     ? $bodDetails[Constant::BOD_ID] : null;
-                $variationId = $this->dataParser($userResponseData, Constant::UserRoles_VariationId);
+                $variationId = $this->dataParser($userResponseData, Xpath::UserRoles_VariationId);
                 $this->logger->writeLog($bodName . ' - ' . $bodId . ' - ' . $variationId);
                 //Prepare Data
                 $username = $userResponseData['LSUserRolesHeader']['DocumentID']['ID']['_value'];
