@@ -20,7 +20,7 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
     <module name="LeanSwift_Login" setup_version="1.0.0">
         <sequence>
-            <module name="LeanSwift_Econnect"/>
+            <module name="LeanSwift_EconnectBase"/>
             <module name="Magento_Customer"/>
         </sequence>
     </module>
