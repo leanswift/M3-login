@@ -179,15 +179,16 @@ class AuthClient extends AbstractHelper
         if (!$tokenURL) {
             return '';
         }
-        $isCloud = $this->isCloudHost();
-        //if it cloud environment
-        if ($isCloud) {
-            $token = '/token.oauth2';
-        } //if it is on-premise environment
-        else {
-            $token = '/connect/token';
-        }
-        return $tokenURL . $token;
+//        $isCloud = $this->isCloudHost();
+//        //if it cloud environment
+//        if ($isCloud) {
+//            $token = '/token.oauth2';
+//        } //if it is on-premise environment
+//        else {
+//            $token = '/connect/token';
+//        }
+//        return $tokenURL . $token;
+        return $tokenURL;
     }
 
     public function getMingleLink()
@@ -200,9 +201,9 @@ class AuthClient extends AbstractHelper
         return $this->trimURL($this->scopeConfig->getValue(Constant::XML_PATH_WEB_SERVICE_URL));
     }
 
-    public function getIonLink()
+    public function getIonAPIServiceLink()
     {
-        return $this->scopeConfig->getValue(Constant::XML_PATH_ION_URL);
+        return $this->scopeConfig->getValue(Constant::XML_PATH_ION_API_SERVICE_URL);
     }
 
     public function getValidateEmail()
@@ -257,7 +258,7 @@ class AuthClient extends AbstractHelper
                 $this->session->setRefreshToken($refreshToken);
             }
         } catch (Exception $e) {
-            $this->logger->writeLog('API request failed' . $e->getMessage());
+            $this->logger->writeLog('API request failed: ' . $e->getMessage());
         }
         return $accessToken;
     }

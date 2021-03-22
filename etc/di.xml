@@ -58,4 +58,21 @@
             </argument>
         </arguments>
     </type>
+
+    <type name="LeanSwift\EconnectBase\Helper\QueueProcessor">
+        <arguments>
+            <argument name="queueList" xsi:type="array">
+                <!-- LS User Roles BOD -->
+                <item name="SyncLSUserRoles" xsi:type="string">leanswift.login.userroles.sync.queue</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="LeanSwift\EconnectBase\Helper\LogViewer">
+        <arguments>
+            <argument name="listLogFiles" xsi:type="array">
+                <item name="M3Login-M3Login.Log" xsi:type="string">/var/log/m3Login.log</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

@@ -125,7 +125,7 @@ class Authentication
                 $this->_coreSession->setRefreshToken($refreshToken);
             }
         } catch (Exception $e) {
-            $this->logger->writeLog('API request failed' . $e->getMessage());
+            $this->logger->writeLog('API request failed: ' . $e->getMessage());
         }
         return $accessToken;
     }
@@ -193,7 +193,7 @@ class Authentication
     public function getUserNameDetail($token, $userCode = '', $method = Constant::GET_USER_BY_EUID, $userId = Constant::USID)
     {
         $userName = '';
-        $params['url'] = $this->auth->getIonLink();
+        $params['url'] = $this->auth->getIonAPIServiceLink();
         $params['token'] = $token;
         if ($userCode) {
             $params['method'] = $method . $userCode;
@@ -246,7 +246,7 @@ class Authentication
                 . 'Response Time in secs:'
                 . $rTime);
         } catch (Exception $e) {
-            $this->logger->writeLog($params['method'] . ' Transaction Data:' . 'API request failed - ' . $e->getMessage());
+            $this->logger->writeLog($params['method'] . ' Transaction Data:' . 'API request failed:  - ' . $e->getMessage());
         }
         return $responseBody;
     }
@@ -286,7 +286,7 @@ class Authentication
                 $this->_coreSession->setRefreshToken($refreshToken);
             }
         } catch (Exception $e) {
-            $this->logger->writeLog('API request failed' . $e->getMessage());
+            $this->logger->writeLog('API request failed: ' . $e->getMessage());
             return false;
         }
         return $accessToken;
