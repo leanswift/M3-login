@@ -19,7 +19,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <type name="Magento\Customer\Model\AccountManagement">
-        <plugin name="LeanSwift_Login::CustomerPlugin" type="LeanSwift\Login\Plugin\Customer\AuthPlugin" sortOrder="100"/>
+        <plugin name="LoginAuthPlugin" type="LeanSwift\Login\Plugin\Customer\AuthPlugin" sortOrder="100"/>
     </type>
 
     <type name="LeanSwift\EconnectBase\Helper\Erpapi">
@@ -75,4 +75,17 @@
             </argument>
         </arguments>
     </type>
+
+    <type name="BitExpert\ForceCustomerLogin\Controller\Adminhtml\Manage\RestoreDefault">
+        <arguments>
+            <argument name="defaultRoutes" xsi:type="array">
+                <item name="/lslogin/index/index" xsi:type="string">M3 Login Page</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Customer\Controller\Account\LoginPost">
+        <plugin name="LoginAccountPlugin" type="LeanSwift\Login\Plugin\Customer\LoginPost" sortOrder="100"/>
+    </type>
+
 </config>
