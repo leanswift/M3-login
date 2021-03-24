@@ -148,11 +148,13 @@ class Authentication
             $email = isset($userDetailList[$emailKey]) ? $userDetailList[$emailKey] : '';
             $firstName = $userDetailList['FirstName'];
             $lastName = $userDetailList['LastName'];
+            $personID = $userDetailList['PersonId'];
             $customerData = [
                 'email' => $email,
                 'firstname' => $firstName,
                 'lastname' => $lastName,
-                'username' => ''
+                'username' => '',
+                'personId' => $personID
             ];
             $isCloud = $this->auth->isCloudHost();
             if ($isCloud) {
