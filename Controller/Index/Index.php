@@ -163,9 +163,14 @@ class Index extends Action
                     throw new \Exception('Email entered is different from the M3 email');
                 }
                 try {
-                    $this->loginCustomer($userDetails['email']);
+                    $this->_eventManager->dispatch('m3_login_userdetails', ['user_details' => $userDetails]);
+                    try {
+                        $this->loginCustomer($userDetails['email']);
+                    } catch (Exception $e) {
+                        $this->createCustomer($userDetails);
+                    }
                 } catch (Exception $e) {
-                    $this->createCustomer($userDetails);
+                    throw new \Exception($e->getMessage());
                 }
             } else {
                 throw new \Exception('Username/Email detail are not present');
