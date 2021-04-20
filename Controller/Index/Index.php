@@ -219,8 +219,8 @@ class Index extends Action
             $customerInfo->setCustomAttribute('username', $username);
             $this->customerRepo->save($customerInfo);
             $this->loginCustomer($email);
-            $userInfo = $this->helper->erpapi()->getUserRoles($username);
-            $this->helper->erpapi()->updateuser($username, $userInfo);
+//            $userInfo = $this->helper->erpapi()->getUserRoles($username);
+//            $this->helper->erpapi()->updateuser($username, $userInfo);
         } catch (Exception $e) {
             $this->logger->writeLog($e->getMessage());
         }
