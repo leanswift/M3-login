@@ -25,13 +25,14 @@ use LeanSwift\Login\Helper\Logger;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\Session;
-use Magento\Framework\Api\AttributeInterface;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Store\Model\StoreManagerInterface;
+
+
 
 class Index extends Action
 {
@@ -217,6 +218,11 @@ class Index extends Action
             $customerId = $customer->getId();
             $customerInfo = $this->customerRepo->getById($customerId);
             $customerInfo->setCustomAttribute('username', $username);
+
+            $this->_eventManager->dispatch(
+                'customer_register_success',
+                ['account_controller' => $this, 'customer' => $customerInfo]
+            );
             $this->customerRepo->save($customerInfo);
             $this->loginCustomer($email);
 //            $userInfo = $this->helper->erpapi()->getUserRoles($username);
