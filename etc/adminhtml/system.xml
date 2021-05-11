@@ -89,6 +89,14 @@
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                 </field>
             </group>
+            <group id="version" translate="label" type="text" sortOrder="140" showInDefault="1" showInWebsite="0"
+                   showInStore="0">
+                <label>Version</label>
+                <group id="loginversion" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1"
+                       showInStore="0">
+                    <frontend_model>LoginModuleVersionBlock</frontend_model>
+                </group>
+            </group>
         </section>
         <section id="import_config">
             <group id="import_role" translate="label" type="text" sortOrder="40" showInDefault="1"
