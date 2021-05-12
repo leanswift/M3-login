@@ -1,5 +1,5 @@
 {
-    "name": "leanswift/login",
+    "name": "leanswift/module-login",
     "description": "LeanSwift M3Login Module",
     "require": {
         "leanswift/module-econnect-base": ">=5.0.0"
