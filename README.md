@@ -47,7 +47,7 @@ There are two ways to install the module in  Magento. Composer way (**Recommende
     }
 }
 ```
-  > **Note:** You need to provide the package name and the latest released version. Like, **3.x.x**.
+  > **Note:** You need to provide the package name and the latest released version. Like, **1.x.x**.
  
 **Step 2:** Add Login Module's GitHub repository URL.
 
