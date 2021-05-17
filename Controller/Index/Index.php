@@ -149,7 +149,9 @@ class Index extends Action
     {
         //load with email
         $customerRepo = $this->customerRepo->get($email, $this->storeManager->getWebsite()->getId());
-        $this->customerSession->loginById($customerRepo->getId());
+        if($customerRepo->getId()) {
+            $this->customerSession->loginById($customerRepo->getId());
+        }
     }
 
     public function loginAsCustomer($accessToken)
