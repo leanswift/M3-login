@@ -294,7 +294,7 @@ class AuthClient extends AbstractHelper
         //if it cloud environment
         if ($isCloud) {
             $authorize = '/authorization.oauth2';
-            $redirect = "redirect_url=$returnUrl";
+            $redirect = "redirect_uri=$returnUrl";
         } //if it is on-premise environment
         else {
             $authorize = '/connect/authorize';

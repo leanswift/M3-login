@@ -147,9 +147,9 @@ class Index extends Action
 
     public function loginCustomer($email)
     {
-        $customerRepo = $this->customerRepo->get($email);                    //load with email
-        $customer = $this->customerFactory->create()->load($customerRepo->getId());     //get the customer model by id
-        $this->customerSession->setCustomerAsLoggedIn($customer);
+        //load with email
+        $customerRepo = $this->customerRepo->get($email, $this->storeManager->getWebsite()->getId());
+        $this->customerSession->loginById($customerRepo->getId());
     }
 
     public function loginAsCustomer($accessToken)
