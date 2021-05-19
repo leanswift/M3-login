@@ -1,17 +1,13 @@
 {
-  "name": "leanswift/login",
-  "description": "LeanSwift M3Login Module",
-  "require": {
-    "leanswift/module-econnect-base": ">=5.0.0"
-  },
-  "type": "magento2-module",
-  "version": "1.0.0",
-  "license": [
-    "proprietary"
-  ],
-  "autoload": {
-    "files": [
-      "registration.php"
+    "name": "leanswift/module-login",
+    "description": "LeanSwift M3Login Module",
+    "require": {
+        "leanswift/module-econnect-base": ">=6.0.0"
+    },
+    "type": "magento2-module",
+    "version": "1.0.0",
+    "license": [
+        "proprietary"
     ],
     "psr-4": {
       "LeanSwift\\Login\\": ""

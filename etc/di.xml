@@ -88,4 +88,14 @@
         <plugin name="LoginAccountPlugin" type="LeanSwift\Login\Plugin\Customer\LoginPost" sortOrder="100"/>
     </type>
 
+    <virtualType name="LoginModuleVersion" type="LeanSwift\EconnectBase\Service\ModuleVersion">
+        <arguments>
+            <argument name="packageName" xsi:type="string">leanswift/module-login</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="LoginModuleVersionBlock" type="LeanSwift\EconnectBase\Block\Backend\Version">
+        <arguments>
+            <argument name="version" xsi:type="object">LoginModuleVersion</argument>
+        </arguments>
+    </virtualType>
 </config>
