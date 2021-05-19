@@ -40,8 +40,7 @@ class Userrole extends AbstractDb
         Context $context,
         Importhistory $importHistory,
         $connectionName = null
-    )
-    {
+    ) {
         $this->importHistory = $importHistory;
         parent::__construct($context, $connectionName);
     }
@@ -118,8 +117,7 @@ class Userrole extends AbstractDb
     {
         $adapter = $this->getConnection();
         $tableName = $this->getTable('leanswift_login_user');
-        $select = $adapter->select()->from($tableName)
-            ->where('username=:username');
+        $select = $adapter->select()->from($tableName)->where('username=:username');
 
         $binds = ['username' => $username];
 
@@ -139,8 +137,7 @@ class Userrole extends AbstractDb
     {
         $adapter = $this->getConnection();
         $tableName = $this->getTable('leanswift_login_roleinfo');
-        $select = $adapter->select()->from($tableName)
-            ->where("role=$role");
+        $select = $adapter->select()->from($tableName)->where("role=$role");
         if ($cono) {
             $adapter->where("company=$cono");
         }

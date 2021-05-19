@@ -12,8 +12,8 @@
  *   except and only to the extent that such activity is expressly permitted by
  *    applicable law not withstanding this limitation.
  *
- *   @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
- *   @license     https://www.leanswift.com/end-user-licensing-agreement
+ * @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
+ * @license     https://www.leanswift.com/end-user-licensing-agreement
  *
  */
 
@@ -90,27 +90,23 @@ class AddUsernameAttribute implements DataPatchInterface
 
         $attributeSet = $this->attributeSetFactory->create();
         $attributeGroupId = $attributeSet->getDefaultGroupId($attributeSetId);
-        $customerSetup->addAttribute(
-            Customer::ENTITY,
-            'username',
-            [
-                'type'                  => 'varchar',
-                'label'                 => 'UserName',
-                'input'                 => 'text',
-                'required'              => false,
-                'is_used_in_grid'       => true,
-                'is_visible_in_grid'    => false,
+        $customerSetup->addAttribute(Customer::ENTITY, 'username', [
+                'type' => 'varchar',
+                'label' => 'UserName',
+                'input' => 'text',
+                'required' => false,
+                'is_used_in_grid' => true,
+                'is_visible_in_grid' => false,
                 'is_filterable_in_grid' => true,
-                'position'              => 155,
-                'system'                => false,
-                'visible'               => true,
-            ]
-        );
+                'position' => 155,
+                'system' => false,
+                'visible' => true,
+            ]);
 
         $attribute = $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, 'username')->addData([
-            'attribute_set_id'   => $attributeSetId,
+            'attribute_set_id' => $attributeSetId,
             'attribute_group_id' => $attributeGroupId,
-            'used_in_forms'      => ['adminhtml_customer'],
+            'used_in_forms' => ['adminhtml_customer'],
         ]);
 
         $attribute->save();

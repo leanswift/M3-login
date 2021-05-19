@@ -29,9 +29,12 @@ use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Exception\InputException;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Exception\State\InputMismatchException;
 use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Store\Model\StoreManagerInterface;
-
 
 
 class Index extends Action
@@ -57,11 +60,6 @@ class Index extends Action
      * @var Session
      */
     protected $customerSession;
-
-    /**
-     * @var StoreManagerInterface
-     */
-    private $storeManager;
     /**
      * @var Logger
      */
@@ -74,6 +72,10 @@ class Index extends Action
      * @var SessionManagerInterface
      */
     protected $_coreSession;
+    /**
+     * @var StoreManagerInterface
+     */
+    private $storeManager;
 
     /**
      * Index constructor.
@@ -98,8 +100,7 @@ class Index extends Action
         SessionManagerInterface $coreSession,
         Logger $logger,
         $redirectPath = self::PATH
-    )
-    {
+    ) {
         $this->helper = $data;
         $this->customerRepo = $customerRepo;
         $this->customerFactory = $customerFactory;
@@ -113,10 +114,10 @@ class Index extends Action
 
     /**
      * @return ResponseInterface|ResultInterface|void
-     * @throws \Magento\Framework\Exception\InputException
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     * @throws \Magento\Framework\Exception\State\InputMismatchException
+     * @throws InputException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     * @throws InputMismatchException
      */
     public function execute()
     {
@@ -126,32 +127,23 @@ class Index extends Action
             if ($info && array_key_exists('code', $info)) {
                 $code = $info['code'];
                 if (!$code) {
-                    throw new \Exception('Authentication code is not present');
+                    throw new Exception('Authentication code is not present');
                 }
                 $accessToken = $this->helper->authModel()->generateToken($code);
                 if ($accessToken) {
                     $this->loginAsCustomer($accessToken);
                 } else {
-                    throw new \Exception('Access token could not be created');
+                    throw new Exception('Access token could not be created');
                 }
             } else {
-                throw new \Exception('Authentication failed from M3');
+                throw new Exception('Authentication failed from M3');
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->logger->writeLog($e->getMessage());
             $this->messageManager->addErrorMessage('Authentication failed');
         }
         $this->addAuthenticationCode($code);
         $this->_redirect($this->getRedirectPath());
-    }
-
-    public function loginCustomer($email)
-    {
-        //load with email
-        $customerRepo = $this->customerRepo->get($email, $this->storeManager->getWebsite()->getId());
-        if($customerRepo->getId()) {
-            $this->customerSession->loginById($customerRepo->getId());
-        }
     }
 
     public function loginAsCustomer($accessToken)
@@ -160,10 +152,10 @@ class Index extends Action
         if (!empty($userDetails)) {
             if (array_key_exists('username', $userDetails) && array_key_exists('email', $userDetails)) {
                 if (!$userDetails['email']) {
-                    throw new \Exception('Email is not configured in M3');
+                    throw new Exception('Email is not configured in M3');
                 }
                 if (!$this->validateEmail($userDetails['email'])) {
-                    throw new \Exception('Email entered is different from the M3 email');
+                    throw new Exception('Email entered is different from the M3 email');
                 }
                 try {
                     $this->_eventManager->dispatch('m3_login_userdetails', ['user_details' => $userDetails]);
@@ -173,13 +165,13 @@ class Index extends Action
                         $this->createCustomer($userDetails);
                     }
                 } catch (Exception $e) {
-                    throw new \Exception($e->getMessage());
+                    throw new Exception($e->getMessage());
                 }
             } else {
-                throw new \Exception('Username/Email detail are not present');
+                throw new Exception('Username/Email detail are not present');
             }
         } else {
-            throw new \Exception('Service URL for Authorization is not configured');
+            throw new Exception('Service URL for Authorization is not configured');
         }
     }
 
@@ -193,6 +185,15 @@ class Index extends Action
     {
         $loginCustomerEmail = $this->_coreSession->getEmail();
         return (strcasecmp($loginCustomerEmail, $email) == 0);
+    }
+
+    public function loginCustomer($email)
+    {
+        //load with email
+        $customerRepo = $this->customerRepo->get($email, $this->storeManager->getWebsite()->getId());
+        if ($customerRepo->getId()) {
+            $this->customerSession->loginById($customerRepo->getId());
+        }
     }
 
     public function createCustomer($userDetailList)
@@ -221,14 +222,12 @@ class Index extends Action
             $customerInfo = $this->customerRepo->getById($customerId);
             $customerInfo->setCustomAttribute('username', $username);
 
-            $this->_eventManager->dispatch(
-                'customer_register_success',
-                ['account_controller' => $this, 'customer' => $customerInfo]
-            );
+            $this->_eventManager->dispatch('customer_register_success', [
+                    'account_controller' => $this,
+                    'customer' => $customerInfo
+                ]);
             $this->customerRepo->save($customerInfo);
             $this->loginCustomer($email);
-//            $userInfo = $this->helper->erpapi()->getUserRoles($username);
-//            $this->helper->erpapi()->updateuser($username, $userInfo);
         } catch (Exception $e) {
             $this->logger->writeLog($e->getMessage());
         }
@@ -239,18 +238,16 @@ class Index extends Action
      * Add authentication code to logged in customer
      *
      * @param $authCode
-     * @throws \Magento\Framework\Exception\InputException
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     * @throws \Magento\Framework\Exception\State\InputMismatchException
+     * @throws InputException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     * @throws InputMismatchException
      */
     public function addAuthenticationCode($authCode)
     {
         if ($this->customerSession->isLoggedIn()) {
-            $customerInfo = $this->customerSession->getCustomerData()->setCustomAttribute(
-                'authentication_code',
-                $authCode
-            );
+            $customerInfo = $this->customerSession->getCustomerData()
+                ->setCustomAttribute('authentication_code', $authCode);
             $this->customerRepo->save($customerInfo);
         }
     }

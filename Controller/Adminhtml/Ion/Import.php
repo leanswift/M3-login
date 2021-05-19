@@ -59,8 +59,7 @@ class Import extends Action
         Data $data,
         Userrole $userRole,
         Erpapi $baseErpAPI
-    )
-    {
+    ) {
         $this->helper = $data;
         $this->roleResource = $userRole;
         $this->baseErpAPI = $baseErpAPI;

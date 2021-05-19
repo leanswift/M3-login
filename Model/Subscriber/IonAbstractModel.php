@@ -12,17 +12,18 @@
  *   except and only to the extent that such activity is expressly permitted by
  *    applicable law not withstanding this limitation.
  *
- *   @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
- *   @license     https://www.leanswift.com/end-user-licensing-agreement
+ * @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
+ * @license     https://www.leanswift.com/end-user-licensing-agreement
  *
  */
 
 namespace LeanSwift\Login\Model\Subscriber;
 
+use LeanSwift\EconnectBase\Model\Parser as BaseParser;
 use LeanSwift\Login\Helper\Constant;
+use LeanSwift\Login\Helper\Erpapi;
 use LeanSwift\Login\Helper\Logger;
 use LeanSwift\Login\Helper\Xpath;
-use LeanSwift\Login\Helper\Erpapi;
 use Magento\Framework\Api\AttributeValueFactory;
 use Magento\Framework\Api\ExtensionAttributesFactory;
 use Magento\Framework\Data\Collection\AbstractDb;
@@ -31,7 +32,6 @@ use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
 use Magento\Framework\Xml\Parser;
-use LeanSwift\EconnectBase\Model\Parser as BaseParser;
 
 /**
  * Class IonAbstractModel
@@ -82,21 +82,12 @@ abstract class IonAbstractModel extends AbstractExtensibleModel
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = []
-    )
-    {
+    ) {
         $this->baseParser = $baseParser;
         $this->_xmlParser = $parser;
         $this->erpApiHelper = $erpApiHelper;
         $this->logger = $logger;
-        parent::__construct(
-            $context,
-            $registry,
-            $extensionFactory,
-            $customAttributeFactory,
-            $resource,
-            $resourceCollection,
-            $data
-        );
+        parent::__construct($context, $registry, $extensionFactory, $customAttributeFactory, $resource, $resourceCollection, $data);
     }
 
     public function getSerializerObject()
@@ -119,6 +110,22 @@ abstract class IonAbstractModel extends AbstractExtensibleModel
         }
 
         return $queueData;
+    }
+
+    /**
+     * Array Parser is a function to get the end value by passing the xpath and array source.
+     * Don't change/delete this function which act as a library to parse the ION BOD.
+     *
+     * @param      $response
+     * @param      $path
+     * @param null $pathKey
+     * @param null $pathValue
+     *
+     * @return array|mixed|null|string
+     */
+    public function dataParser($response, $path, $pathKey = null, $pathValue = null)
+    {
+        return $this->baseParser->dataParser($response, $path, $pathKey, $pathValue);
     }
 
     /**
@@ -160,22 +167,6 @@ abstract class IonAbstractModel extends AbstractExtensibleModel
         }
 
         return $result;
-    }
-
-    /**
-     * Array Parser is a function to get the end value by passing the xpath and array source.
-     * Don't change/delete this function which act as a library to parse the ION BOD.
-     *
-     * @param      $response
-     * @param      $path
-     * @param null $pathKey
-     * @param null $pathValue
-     *
-     * @return array|mixed|null|string
-     */
-    public function dataParser($response, $path, $pathKey = null, $pathValue = null)
-    {
-        return $this->baseParser->dataParser($response, $path, $pathKey, $pathValue);
     }
 
     /**

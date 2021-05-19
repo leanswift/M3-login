@@ -12,15 +12,14 @@
  *   except and only to the extent that such activity is expressly permitted by
  *    applicable law not withstanding this limitation.
  *
- *   @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
- *   @license     https://www.leanswift.com/end-user-licensing-agreement
+ * @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
+ * @license     https://www.leanswift.com/end-user-licensing-agreement
  *
  */
 
 $getList = $block->getList();
 foreach ($getList as $key => $list) :?>
-    <?=
-    $label = null;
+    <?= $label = null;
     $version = null;
     $edition = null;
     if (array_key_exists('label', $list)) {
@@ -31,13 +30,11 @@ foreach ($getList as $key => $list) :?>
     }
     if (array_key_exists('edition', $list)) {
         $edition = $list['edition'];
-    }
-    ?>
+    } ?>
     <div class="version-notice">
         <p>
             <b><label><?= $label . ":"; ?></label></b>
-            <strong style="color: #ef672f; line-height:34px;"><?= $version; ?><?= (isset($edition))
-                    ? ' ' . $edition : ''; ?></strong>
+            <strong style="color: #ef672f; line-height:34px;"><?= $version; ?><?= (isset($edition)) ? ' ' . $edition : ''; ?></strong>
         </p>
     </div>
 <?php

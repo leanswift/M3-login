@@ -27,6 +27,10 @@ use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
+use Zend_Http_Client;
+use Zend_Http_Client_Adapter_Exception;
+use Zend_Http_Client_Adapter_Socket;
+use Zend_Http_Client_Exception;
 
 /**
  * Class AuthClient
@@ -61,14 +65,13 @@ class AuthClient extends AbstractHelper
 
     public function __construct(
         Context $context,
-        \Magento\Framework\Encryption\EncryptorInterface $encrypt,
+        EncryptorInterface $encrypt,
         \LeanSwift\EconnectBase\Helper\Data $baseDataHelper,
         SessionManagerInterface $coreSession,
         ManagerInterface $manager,
         Logger $logger,
         FormKey $formKey
-    )
-    {
+    ) {
         $this->encryptorInterface = $encrypt;
         $this->baseDataHelper = $baseDataHelper;
         $this->session = $coreSession;
@@ -76,49 +79,6 @@ class AuthClient extends AbstractHelper
         $this->messageManager = $manager;
         $this->formKey = $formKey;
         parent::__construct($context);
-    }
-
-    /**
-     * @return \Zend_Http_Client
-     * @throws \Zend_Http_Client_Adapter_Exception
-     * @throws \Zend_Http_Client_Exception
-     */
-    public function getClient()
-    {
-        //Initialize Zend Client Object
-        $client = new \Zend_Http_Client();
-        $options = [
-            'ssl' => [
-                // Verify server side certificate,
-                // do not accept invalid or self-signed SSL certificates
-                'verify_peer' => false,
-                'verify_peer_name' => false,
-                'allow_self_signed' => false,
-                // Capture the peer's certificate
-                'capture_peer_cert' => false,
-            ],
-        ];
-        // Create an adapter object and attach it to the HTTP client
-        $adapter = new \Zend_Http_Client_Adapter_Socket();
-        $adapter->setStreamContext($options);
-        $client->setAdapter($adapter);
-        return $client;
-    }
-
-    /**
-     * Get Login API Client Secret
-     *
-     * @param null $storeId
-     *
-     * @return string
-     */
-    public function getClientSecret($storeId = null)
-    {
-        return $this->encryptorInterface->decrypt($this->scopeConfig->getValue(
-            Constant::XML_PATH_WEB_SERVICE_CLIENTSECRET,
-            $this->baseDataHelper->getStoreScope(),
-            $storeId
-        ));
     }
 
     /**
@@ -130,44 +90,22 @@ class AuthClient extends AbstractHelper
         return $host == $this->getCloudMingleHost();
     }
 
-    /**
-     * @return string
-     */
-    public function getOauthLink()
+    public function getTokenURL()
     {
-        try {
-            $oauthURL = $this->getTokenURL();
-            if (!$oauthURL) {
-                $this->logger->writeLog('Service URL for Token is not configured');
-                return '';
-            }
-            $clientId = $this->getClientId();
-            if (!$clientId) {
-                $this->logger->writeLog('Client ID is not configured');
-                return '';
-            }
-            $params = $this->getAuthorizingURLParams();
-            $param = "$params[0]?client_id=$clientId&max_age=20&prompt=login&nonce=NONCE&response_type=code&$params[1]&state=" . $this->getFormKey();
-            return $oauthURL . $param;
-        } catch (LocalizedException $e) {
+        return $this->trimURL($this->scopeConfig->getValue(Constant::XML_PATH_WEB_SERVICE_URL));
+    }
 
-        }
+    public function trimURL($url)
+    {
+        return trim(rtrim($url, '/'));
     }
 
     /**
-     * Get Login API Client Id
-     *
-     * @param null $storeId
-     *
-     * @return mixed|string
+     * @return string
      */
-    public function getClientId($storeId = null)
+    public function getCloudMingleHost()
     {
-        return $this->scopeConfig->getValue(
-            Constant::XML_PATH_WEB_SERVICE_CLIENTID,
-            $this->baseDataHelper->getStoreScope(),
-            $storeId
-        );
+        return Constant::CLOUD_MINGLE_HOST;
     }
 
     /**
@@ -179,26 +117,12 @@ class AuthClient extends AbstractHelper
         if (!$tokenURL) {
             return '';
         }
-//        $isCloud = $this->isCloudHost();
-//        //if it cloud environment
-//        if ($isCloud) {
-//            $token = '/token.oauth2';
-//        } //if it is on-premise environment
-//        else {
-//            $token = '/connect/token';
-//        }
-//        return $tokenURL . $token;
         return $tokenURL;
     }
 
     public function getMingleLink()
     {
         return $this->trimURL($this->scopeConfig->getValue(Constant::XML_PATH_WEB_MINGLE_URL));
-    }
-
-    public function getTokenURL()
-    {
-        return $this->trimURL($this->scopeConfig->getValue(Constant::XML_PATH_WEB_SERVICE_URL));
     }
 
     public function getIonAPIServiceLink()
@@ -253,7 +177,7 @@ class AuthClient extends AbstractHelper
                 $responseBody = json_decode($parsedResult, true);
                 $accessToken = $responseBody['access_token'];
                 $refreshToken = $responseBody['refresh_token'];
-//                $this->logger->writeLogInfo('New access token : ' . $accessToken);
+                //                $this->logger->writeLogInfo('New access token : ' . $accessToken);
                 $this->session->setAccessToken($accessToken);
                 $this->session->setRefreshToken($refreshToken);
             }
@@ -261,6 +185,74 @@ class AuthClient extends AbstractHelper
             $this->logger->writeLog('API request failed: ' . $e->getMessage());
         }
         return $accessToken;
+    }
+
+    /**
+     * @return Zend_Http_Client
+     * @throws Zend_Http_Client_Adapter_Exception
+     * @throws Zend_Http_Client_Exception
+     */
+    public function getClient()
+    {
+        //Initialize Zend Client Object
+        $client = new Zend_Http_Client();
+        $options = [
+            'ssl' => [
+                // Verify server side certificate,
+                // do not accept invalid or self-signed SSL certificates
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => false,
+                // Capture the peer's certificate
+                'capture_peer_cert' => false,
+            ],
+        ];
+        // Create an adapter object and attach it to the HTTP client
+        $adapter = new Zend_Http_Client_Adapter_Socket();
+        $adapter->setStreamContext($options);
+        $client->setAdapter($adapter);
+        return $client;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOauthLink()
+    {
+        $oauthURL = $this->getAuthorizeURL();
+        if (!$oauthURL) {
+            $this->logger->writeLog('Service URL for Token is not configured');
+            return '';
+        }
+        $clientId = $this->getClientId();
+        if (!$clientId) {
+            $this->logger->writeLog('Client ID is not configured');
+            return '';
+        }
+        return $oauthURL . $this->getParamInURL($clientId);
+    }
+
+    public function getAuthorizeURL()
+    {
+        return $this->scopeConfig->getValue(Constant::XML_PATH_AUTHORIZE_URL);
+    }
+
+    /**
+     * Get Login API Client Id
+     *
+     * @param null $storeId
+     *
+     * @return mixed|string
+     */
+    public function getClientId($storeId = null)
+    {
+        return $this->scopeConfig->getValue(Constant::XML_PATH_WEB_SERVICE_CLIENTID, $this->baseDataHelper->getStoreScope(), $storeId);
+    }
+
+    public function getParamInURL($clientId)
+    {
+        $returnUrl = $this->getReturnUrl();
+        return "?client_id=$clientId&max_age=20&prompt=login&nonce=NONCE&response_type=code&redirect_uri=$returnUrl&state=" . $this->getFormKey();
     }
 
     /**
@@ -274,38 +266,6 @@ class AuthClient extends AbstractHelper
     /**
      * @return string
      */
-    public function getCloudMingleHost()
-    {
-        return Constant::CLOUD_MINGLE_HOST;
-    }
-
-    public function trimURL($url)
-    {
-        return trim(rtrim($url, '/'));
-    }
-
-    /**
-     * @return array
-     */
-    public function getAuthorizingURLParams()
-    {
-        $isCloud = $this->isCloudHost();
-        $returnUrl = $this->getReturnUrl();
-        //if it cloud environment
-        if ($isCloud) {
-            $authorize = '/authorization.oauth2';
-            $redirect = "redirect_uri=$returnUrl";
-        } //if it is on-premise environment
-        else {
-            $authorize = '/connect/authorize';
-            $redirect = "redirect_uri=$returnUrl";
-        }
-        return [$authorize, $redirect];
-    }
-
-    /**
-     * @return string
-     */
     public function getFormKey()
     {
         try {
@@ -313,6 +273,18 @@ class AuthClient extends AbstractHelper
         } catch (LocalizedException $e) {
             $this->logger->writeLog($e->getMessage());
         }
+    }
+
+    /**
+     * Get Login API Client Secret
+     *
+     * @param null $storeId
+     *
+     * @return string
+     */
+    public function getClientSecret($storeId = null)
+    {
+        return $this->encryptorInterface->decrypt($this->scopeConfig->getValue(Constant::XML_PATH_WEB_SERVICE_CLIENTSECRET, $this->baseDataHelper->getStoreScope(), $storeId));
     }
 
 }
