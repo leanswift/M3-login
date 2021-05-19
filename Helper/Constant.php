@@ -36,7 +36,7 @@ class Constant extends BaseConstant
 
     const XML_PATH_ION_API_SERVICE_URL = 'lsbase/service_config/service_url';
 
-    const XML_PATH_AUTHORIZE_URL = 'leanswift_login/leanswift_login/authorize_url';
+    const XML_PATH_AUTHORIZE_URL = 'leanswift_login/authentication/authorize_url';
 
     const XML_PATH_WEB_SERVICE_CLIENTID = 'leanswift_login/authentication/web_service_clientid';
 
