@@ -31,11 +31,11 @@ class LoginPost
      */
     public function beforeExecute(CustomerLoginPost $subject)
     {
-        $subject->getRequest()->setParams(['form_key'=>$subject->getRequest()->getParam('form_key')]);
+        $subject->getRequest()->setParams(['form_key' => $subject->getRequest()->getParam('form_key')]);
         $loginData = $subject->getRequest()->getPost('login');
         if (!$loginData['password']) {
             $loginData['password'] = $this->getDummyPassword();
-            $this->parametersInterface->fromArray(['login'=>$loginData]);
+            $this->parametersInterface->fromArray(['login' => $loginData]);
             $subject->getRequest()->setPost($this->parametersInterface);
         }
     }

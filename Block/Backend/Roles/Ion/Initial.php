@@ -66,8 +66,7 @@ class Initial extends Field
         RequestInterface $request,
         BaseDataHelper $baseDataHelper,
         array $data = []
-    )
-    {
+    ) {
         $this->_request = $request;
         $this->baseDataHelper = $baseDataHelper;
         parent::__construct($context, $data);
@@ -115,16 +114,6 @@ class Initial extends Field
     }
 
     /**
-     * Return confirmation popup message
-     *
-     * @return string
-     */
-    public function getMessage()
-    {
-        return "Are you sure you want to import user roles data from M3?";
-    }
-
-    /**
      * Return redirect url for button
      *
      * @return string
@@ -132,6 +121,16 @@ class Initial extends Field
     public function getRedirectUrl()
     {
         return $this->getUrl(self::ION_CONFIG_URL);
+    }
+
+    /**
+     * Return confirmation popup message
+     *
+     * @return string
+     */
+    public function getMessage()
+    {
+        return "Are you sure you want to import user roles data from M3?";
     }
 
     /**

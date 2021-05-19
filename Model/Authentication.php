@@ -27,6 +27,8 @@ use LeanSwift\Login\Model\Api\Adapter;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Framework\Session\SessionManagerInterface;
+use Zend_Http_Client_Adapter_Exception;
+use Zend_Http_Client_Exception;
 
 /**
  * Class Authentication
@@ -35,28 +37,25 @@ use Magento\Framework\Session\SessionManagerInterface;
 class Authentication
 {
     /**
+     * @var SessionManagerInterface
+     */
+    protected $_coreSession;
+    /**
      * @var AuthClient
      */
     private $auth;
-
     /**
      * @var CustomerFactory
      */
     private $customerFactory;
-
     /**
      * @var CustomerRepositoryInterface
      */
     private $customerRepo;
-
     /**
      * @var Adapter
      */
     private $logger;
-    /**
-     * @var SessionManagerInterface
-     */
-    protected $_coreSession;
 
     /**
      * Authentication constructor.
@@ -73,8 +72,7 @@ class Authentication
         CustomerRepositoryInterface $customerRepository,
         SessionManagerInterface $coreSession,
         Logger $logger
-    )
-    {
+    ) {
         $this->auth = $authClient;
         $this->customerFactory = $customerFactory;
         $this->customerRepo = $customerRepository;
@@ -86,8 +84,8 @@ class Authentication
      * @param $code
      * @param int $timeout
      * @return string
-     * @throws \Zend_Http_Client_Adapter_Exception
-     * @throws \Zend_Http_Client_Exception
+     * @throws Zend_Http_Client_Adapter_Exception
+     * @throws Zend_Http_Client_Exception
      */
     public function generateToken($code, $timeout = 60)
     {
@@ -119,7 +117,7 @@ class Authentication
                 $responseBody = json_decode($parsedResult, true);
                 $accessToken = $responseBody['access_token'];
                 $refreshToken = $responseBody['refresh_token'];
-//                $this->logger->writeLog('New access token : ' . $accessToken);
+                //                $this->logger->writeLog('New access token : ' . $accessToken);
                 $this->_coreSession->start();
                 $this->_coreSession->setAccessToken($accessToken);
                 $this->_coreSession->setRefreshToken($refreshToken);
@@ -185,6 +183,42 @@ class Authentication
         return [];
     }
 
+    public function sendRequest($params, $requestType = 'GET', $timeout = 20)
+    {
+        $responseBody = false;
+        $beforeTime = microtime(true);
+        if (!isset($params['client'])) {
+            $client = $this->auth->getClient();
+        } else {
+            $client = $params['client'];
+        }
+        $url = $params['url'] . $params['method'];
+        $accessToken = isset($params['token']) ? $params['token'] : $this->_coreSession->getAccessToken();
+        $client->setUri($url);
+        $client->setHeaders(['Authorization' => 'Bearer ' . $accessToken]);
+        $client->setHeaders(['accept' => 'application/json;charset=utf-8']);
+        if (isset($params['data'])) {
+            $data = json_encode($params['data']);
+        } else {
+            $data = '';
+        }
+        $client->setRawData($data, 'application/json');
+        $client->setConfig(['maxredirects' => 3, 'timeout' => $timeout, 'keepalive' => true]);
+        $afterTime = microtime(true);
+        $rTime = $afterTime - $beforeTime;
+        try {
+            $response = $client->request($requestType);
+            $parsedResult = $response->getBody();
+            if ($response->getStatus() == 200) {
+                $responseBody = json_decode($parsedResult, true);
+            }
+            $this->logger->writeLog($params['method'] . ' Transaction Data:' . $data . 'Response: ' . $parsedResult . 'Response Time in secs:' . $rTime);
+        } catch (Exception $e) {
+            $this->logger->writeLog($params['method'] . ' Transaction Data:' . 'API request failed:  - ' . $e->getMessage());
+        }
+        return $responseBody;
+    }
+
     /**
      * @param $token
      * @param string $userCode
@@ -192,8 +226,12 @@ class Authentication
      * @param string $userId
      * @return string
      */
-    public function getUserNameDetail($token, $userCode = '', $method = Constant::GET_USER_BY_EUID, $userId = Constant::USID)
-    {
+    public function getUserNameDetail(
+        $token,
+        $userCode = '',
+        $method = Constant::GET_USER_BY_EUID,
+        $userId = Constant::USID
+    ) {
         $userName = '';
         $params['url'] = $this->auth->getIonAPIServiceLink();
         $params['token'] = $token;
@@ -211,46 +249,6 @@ class Authentication
             });
         }
         return $userName;
-    }
-
-    public function sendRequest($params, $requestType = 'GET', $timeout = 20)
-    {
-        $responseBody = false;
-        $beforeTime = microtime(true);
-        if (!isset($params['client'])) {
-            $client = $this->auth->getClient();
-        } else {
-            $client = $params['client'];
-        }
-        $url = $params['url'] . $params['method'];
-        $accessToken = isset($params['token']) ? $params['token'] : $this->_coreSession->getAccessToken();
-        $client->setUri($url);
-        $client->setHeaders(
-            ['Authorization' => 'Bearer ' . $accessToken]
-        );
-        $client->setHeaders(['accept' => 'application/json;charset=utf-8']);
-        if (isset($params['data'])) {
-            $data = json_encode($params['data']);
-        } else {
-            $data = '';
-        }
-        $client->setRawData($data, 'application/json');
-        $client->setConfig(['maxredirects' => 3, 'timeout' => $timeout, 'keepalive' => true]);
-        $afterTime = microtime(true);
-        $rTime = $afterTime - $beforeTime;
-        try {
-            $response = $client->request($requestType);
-            $parsedResult = $response->getBody();
-            if ($response->getStatus() == 200) {
-                $responseBody = json_decode($parsedResult, true);
-            }
-            $this->logger->writeLog($params['method'] . ' Transaction Data:' . $data . 'Response: ' . $parsedResult
-                . 'Response Time in secs:'
-                . $rTime);
-        } catch (Exception $e) {
-            $this->logger->writeLog($params['method'] . ' Transaction Data:' . 'API request failed:  - ' . $e->getMessage());
-        }
-        return $responseBody;
     }
 
     public function requestToken($timeout = 60)
@@ -274,7 +272,7 @@ class Authentication
         $client->setParameterPost($credentials);
         try {
             $client->setConfig(['maxredirects' => 3, 'timeout' => $timeout]);
-        } catch (\Zend_Http_Client_Exception $e) {
+        } catch (Zend_Http_Client_Exception $e) {
         }
         try {
             $response = $client->request('POST');
@@ -283,7 +281,7 @@ class Authentication
                 $responseBody = json_decode($parsedResult, true);
                 $accessToken = $responseBody['access_token'];
                 $refreshToken = $responseBody['refresh_token'];
-//                $this->logger->writeLog('New access token : ' . $accessToken);
+                //                $this->logger->writeLog('New access token : ' . $accessToken);
                 $this->_coreSession->setAccessToken($accessToken);
                 $this->_coreSession->setRefreshToken($refreshToken);
             }

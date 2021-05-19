@@ -24,9 +24,9 @@
 
 namespace LeanSwift\Login\Helper;
 
-use LeanSwift\Login\Model\ResourceModel\Userrole;
-use LeanSwift\EconnectBase\Helper\Erpapi as BaseErpApi;
 use LeanSwift\EconnectBase\Helper\Constant;
+use LeanSwift\EconnectBase\Helper\Erpapi as BaseErpApi;
+use LeanSwift\Login\Model\ResourceModel\Userrole;
 use Magento\Framework\Serialize\SerializerInterface as Json;
 
 /**
@@ -47,15 +47,12 @@ class Erpapi
     const ROLE_INFO = '/apiTxn/SES400MI/Lst';
 
     const AUTH_BY_ROLE = '/apiTxn/SES400MI/LstAuthByRole';
-
+    protected $baseErpApi;
+    protected $serialize;
     /**
      * @var Userrole
      */
     private $userrole;
-
-    protected $baseErpApi;
-
-    protected $serialize;
 
     /**
      * Erpapi constructor.
@@ -67,8 +64,7 @@ class Erpapi
         Json $serialize,
         Userrole $userroleResource,
         BaseErpApi $baseErpApi
-    )
-    {
+    ) {
         $this->serialize = $serialize;
         $this->userrole = $userroleResource;
         $this->baseErpApi = $baseErpApi;
@@ -173,8 +169,7 @@ class Erpapi
                     if ($cono == $company && $divi == $division) {
                         $res['role'] = $data['ROLL'];
                         $res['function'] = $data['FNID'];
-                        $res['company']
-                            = $res['division'] = ($data['DIVI']) ?? '';
+                        $res['company'] = $res['division'] = ($data['DIVI']) ?? '';
                         $roleInfo [] = $res;
                         unset($res);
                     }
@@ -207,10 +202,6 @@ class Erpapi
     {
         $string = preg_replace('/[[:^print:]]/', '', $string);
 
-        return preg_replace(
-            '/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u',
-            ' ',
-            $string
-        );
+        return preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $string);
     }
 }

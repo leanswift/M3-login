@@ -23,6 +23,7 @@
              sortOrder="120" parent="LeanSwift_EconnectBase::leanswift" resource="LeanSwift_Login::login_settings"/>
         <add id="LeanSwift_Login::general_configuration" title="Settings" translate="title"
              module="LeanSwift_Login" sortOrder="120" parent="LeanSwift_Login::login_settings"
-             action="adminhtml/system_config/edit/section/leanswift_login" resource="LeanSwift_Login::general_configuration"/>
+             action="adminhtml/system_config/edit/section/leanswift_login"
+             resource="LeanSwift_Login::general_configuration"/>
     </menu>
 </config>

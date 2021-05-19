@@ -1,44 +1,44 @@
 {
-    "leanswift_login_user": {
-        "column": {
-            "id": true,
-            "username": true,
-            "roleinfo": true
-        },
-        "index": {
-            "LEANSWIFT_LOGIN_USER_USERNAME": true
-        },
-        "constraint": {
-            "PRIMARY": true
-        }
+  "leanswift_login_user": {
+    "column": {
+      "id": true,
+      "username": true,
+      "roleinfo": true
     },
-    "leanswift_login_roles": {
-        "column": {
-            "id": true,
-            "role": true,
-            "name": true,
-            "description": true
-        },
-        "index": {
-            "LEANSWIFT_LOGIN_ROLES_ROLE": true
-        },
-        "constraint": {
-            "PRIMARY": true
-        }
+    "index": {
+      "LEANSWIFT_LOGIN_USER_USERNAME": true
     },
-    "leanswift_login_roleinfo": {
-        "column": {
-            "id": true,
-            "role": true,
-            "function": true,
-            "company": true,
-            "division": true
-        },
-        "index": {
-            "LEANSWIFT_LOGIN_ROLEINFO_ROLE": true
-        },
-        "constraint": {
-            "PRIMARY": true
-        }
+    "constraint": {
+      "PRIMARY": true
     }
+  },
+  "leanswift_login_roles": {
+    "column": {
+      "id": true,
+      "role": true,
+      "name": true,
+      "description": true
+    },
+    "index": {
+      "LEANSWIFT_LOGIN_ROLES_ROLE": true
+    },
+    "constraint": {
+      "PRIMARY": true
+    }
+  },
+  "leanswift_login_roleinfo": {
+    "column": {
+      "id": true,
+      "role": true,
+      "function": true,
+      "company": true,
+      "division": true
+    },
+    "index": {
+      "LEANSWIFT_LOGIN_ROLEINFO_ROLE": true
+    },
+    "constraint": {
+      "PRIMARY": true
+    }
+  }
 }

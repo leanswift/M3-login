@@ -44,7 +44,8 @@
                         <field id="enable_login">1</field>
                     </depends>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Possibility to log data to check request and response data, specially when developing]]></comment>
+                    <comment>
+                        <![CDATA[Possibility to log data to check request and response data, specially when developing]]></comment>
                 </field>
                 <field id="domain_name" translate="label" type="text" sortOrder="5" showInDefault="1">
                     <label>Internal user email domain(s)</label>
@@ -67,18 +68,24 @@
                 <depends>
                     <field id="leanswift_login/general/enable_login">1</field>
                 </depends>
-                <field id="mingle_url" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0"
-                       showInStore="0">
+                <field id="authorize_url" translate="label" type="text" sortOrder="1" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
                     <label>Service URL for Authorization</label>
+                    <validate>validate-url</validate>
+                    <comment><![CDATA[URL for Authorize Infor]]></comment>
+                </field>
+                <field id="mingle_url" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="0"
+                       showInStore="0">
+                    <label>Service URL for Minge URL</label>
                     <validate>validate-url</validate>
                     <comment><![CDATA[URL for accessing Mingle API]]></comment>
                 </field>
-<!--                <field id="service_url" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="0"-->
-<!--                       showInStore="0">-->
-<!--                    <label>Service URL for Token</label>-->
-<!--                    <validate>validate-url</validate>-->
-<!--                    <comment><![CDATA[ URL to generate token for accessing ION API]]></comment>-->
-<!--                </field>-->
+                <!--                <field id="service_url" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="0"-->
+                <!--                       showInStore="0">-->
+                <!--                    <label>Service URL for Token</label>-->
+                <!--                    <validate>validate-url</validate>-->
+                <!--                    <comment><![CDATA[ URL to generate token for accessing ION API]]></comment>-->
+                <!--                </field>-->
                 <field id="web_service_clientid" translate="label" type="text" sortOrder="3" showInDefault="1"
                        showInWebsite="0" showInStore="0">
                     <label>Client Id</label>

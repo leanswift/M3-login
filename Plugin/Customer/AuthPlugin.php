@@ -40,20 +40,6 @@ use Psr\Log\LoggerInterface;
 final class AuthPlugin
 {
     /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
-     * @var ResponseFactory
-     */
-    private $responseFactory;
-
-    /**
-     * @var AuthClient
-     */
-    private $auth;
-    /**
      * @var ManagerInterface
      */
     protected $messageManager;
@@ -73,6 +59,18 @@ final class AuthPlugin
      * @var Authentication
      */
     protected $authModel;
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+    /**
+     * @var ResponseFactory
+     */
+    private $responseFactory;
+    /**
+     * @var AuthClient
+     */
+    private $auth;
 
     /**
      * AuthPlugin constructor.
@@ -94,8 +92,7 @@ final class AuthPlugin
         Data $helper,
         CustomerRepositoryInterface $customerRepo,
         Authentication $auth
-    )
-    {
+    ) {
         $this->logger = $logger;
         $this->responseFactory = $responseFactory;
         $this->auth = $authClient;
@@ -123,8 +120,8 @@ final class AuthPlugin
             $dns = $this->auth->getDomain();
             $dnsArray = explode(",", $dns);
             if (in_array($domain, $dnsArray)) {
-//                $authCode = $this->getAuthenticationCode($username);
-//                if(!$authCode) {
+                //                $authCode = $this->getAuthenticationCode($username);
+                //                if(!$authCode) {
                 $this->_coreSession->start();
                 $this->_coreSession->setEmail($username);
                 $flag = false;
@@ -135,11 +132,11 @@ final class AuthPlugin
                     throw new LocalizedException(__('Authentication Failed'));
                 }
             }
-//            Generate token
-//                else {
-//                    //$this->authModel->generateToken($authCode);
-//                }
-//            }
+            //            Generate token
+            //                else {
+            //                    //$this->authModel->generateToken($authCode);
+            //                }
+            //            }
         }
         if ($flag) {
             return $proceed($username, $password);

@@ -12,8 +12,8 @@
  *   except and only to the extent that such activity is expressly permitted by
  *    applicable law not withstanding this limitation.
  *
- *   @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
- *   @license     https://www.leanswift.com/end-user-licensing-agreement
+ * @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
+ * @license     https://www.leanswift.com/end-user-licensing-agreement
  *
  */
 
@@ -62,8 +62,7 @@ class UserRoles extends IonAbstractModel implements SubscriberInterface
                 $bodName = $this->getBodName($dataArea, $dataAreaSection);
                 $userResponseData = $this->getDataFromParsedXML($dataArea, $dataAreaSection);
                 $bodDetails = $this->getBodData($rolesQueueData, $userResponseData);
-                $bodId = ($bodDetails && array_key_exists(Constant::BOD_ID, $bodDetails))
-                    ? $bodDetails[Constant::BOD_ID] : null;
+                $bodId = ($bodDetails && array_key_exists(Constant::BOD_ID, $bodDetails)) ? $bodDetails[Constant::BOD_ID] : null;
                 $variationId = $this->dataParser($userResponseData, Xpath::UserRoles_VariationId);
                 $this->logger->writeLog($bodName . ' - ' . $bodId . ' - ' . $variationId);
                 //Prepare Data

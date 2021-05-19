@@ -12,8 +12,8 @@
  *   except and only to the extent that such activity is expressly permitted by
  *    applicable law not withstanding this limitation.
  *
- *   @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
- *   @license     https://www.leanswift.com/end-user-licensing-agreement
+ * @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
+ * @license     https://www.leanswift.com/end-user-licensing-agreement
  *
  */
 
@@ -42,7 +42,7 @@ class Logger extends AbstractHelper
     public function __construct(
         Context $context,
         \Monolog\Logger $logger
-    ){
+    ) {
         $this->logger = $logger;
         parent::__construct($context);
     }
@@ -52,12 +52,10 @@ class Logger extends AbstractHelper
      */
     public function writeLog($message)
     {
-        if($this->isLogEnabled == '')
-        {
+        if ($this->isLogEnabled == '') {
             $this->isLogEnabled = $this->scopeConfig->getValue(Constant::LOGGER_ENABLE_PATH);
         }
-        if($this->isLogEnabled == 1)
-        {
+        if ($this->isLogEnabled == 1) {
             $this->logger->info($message);
         }
     }

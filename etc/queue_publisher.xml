@@ -16,8 +16,9 @@
   ~   @license     https://www.leanswift.com/end-user-licensing-agreement
   ~
   -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/publisher.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/publisher.xsd">
     <publisher topic="leanswift.login.userroles.sync.queue">
-        <connection name="amqp-leanswift" exchange="magento" />
+        <connection name="amqp-leanswift" exchange="magento"/>
     </publisher>
 </config>
