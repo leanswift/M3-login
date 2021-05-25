@@ -56,6 +56,10 @@ class Authentication
      * @var Adapter
      */
     private $logger;
+    /**
+     * @var mixed|string
+     */
+    private $authKey;
 
     /**
      * Authentication constructor.
@@ -71,13 +75,15 @@ class Authentication
         CustomerFactory $customerFactory,
         CustomerRepositoryInterface $customerRepository,
         SessionManagerInterface $coreSession,
-        Logger $logger
+        Logger $logger,
+        $authkey = 'Email'
     ) {
         $this->auth = $authClient;
         $this->customerFactory = $customerFactory;
         $this->customerRepo = $customerRepository;
         $this->_coreSession = $coreSession;
         $this->logger = $logger;
+        $this->authKey = $authkey;
     }
 
     /**
@@ -141,9 +147,9 @@ class Authentication
         }
         $userDetailList = $this->getUserDetails($mingleUrl, $accessToken);
         if (!empty($userDetailList)) {
-            $emailKey = $this->auth->getValidateEmail();
+            $authorizeKey = $this->authKey;
             $userCode = $userDetailList['UserName'];
-            $email = isset($userDetailList[$emailKey]) ? $userDetailList[$emailKey] : '';
+            $email = $userDetailList[$authorizeKey] ?? '';
             $firstName = $userDetailList['FirstName'];
             $lastName = $userDetailList['LastName'];
             $personID = $userDetailList['PersonId'];

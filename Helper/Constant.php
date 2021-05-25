@@ -46,8 +46,6 @@ class Constant extends BaseConstant
 
     const XML_PATH_ENABLE = 'leanswift_login/general/enable_login';
 
-    const XML_PATH_VALIDATE_EMAIL = 'leanswift_login/general/validate_email';
-
     const CLOUD_MINGLE_HOST = 'mingle-sso.inforcloudsuite.com';
 
     const TYPE = 'M3 User Roles';
