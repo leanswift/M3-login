@@ -54,13 +54,6 @@
                     </depends>
                     <comment><![CDATA[Comma-separated list of email domains]]></comment>
                 </field>
-                <field id="validate_email" translate="label" type="text" sortOrder="5" showInDefault="1">
-                    <label>Validate frontend login with M3 attribute</label>
-                    <depends>
-                        <field id="enable_login">1</field>
-                    </depends>
-                    <comment><![CDATA[Ex: Email, UserName]]></comment>
-                </field>
             </group>
             <group id="authentication" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="0"
                    showInStore="0">
