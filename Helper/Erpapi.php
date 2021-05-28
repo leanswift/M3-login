@@ -79,7 +79,7 @@ class Erpapi
     {
         $method = self::ROLE_BY_USER;
         $requestData['USID'] = $username;
-        $response = $this->doRequest($method, $requestData, 60);
+        $response = $this->doRequest($method, $requestData);
         //$response = json_decode($response, true);
         $rolesData = [];
 
@@ -99,16 +99,16 @@ class Erpapi
         return $rolesData;
     }
 
-    public function doRequest($method, $requestData, $timeout = 30)
+    public function doRequest($method, $requestData)
     {
-        return $this->baseErpApi->doRequest($requestData, $method, $timeout, null);
+        return $this->baseErpApi->doRequest($requestData, $method);
     }
 
     public function getRolesList()
     {
         $method = self::ROLE_LIST;
         $requestData['ROLL'] = '';
-        $response = $this->doRequest($method, $requestData, 60);
+        $response = $this->doRequest($method, $requestData);
         //$response = json_decode($response, true);
         $roleList = [];
 
@@ -131,7 +131,7 @@ class Erpapi
     {
         $method = self::ROLE_INFO;
         $requestData['ROLL'] = '';
-        $response = $this->doRequest($method, $requestData, 60);
+        $response = $this->doRequest($method, $requestData);
         //$response = json_decode($response, true);
         $roleInfo = [];
 
@@ -156,7 +156,7 @@ class Erpapi
     {
         $method = self::AUTH_BY_ROLE;
         $requestData['ROLL'] = $role;
-        $response = $this->doRequest($method, $requestData, 60);
+        $response = $this->doRequest($method, $requestData);
         //$response = json_decode($response, true);
         $roleInfo = [];
 
