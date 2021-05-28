@@ -27,6 +27,7 @@ use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
+use Magento\Store\Model\ScopeInterface;
 use Zend_Http_Client;
 use Zend_Http_Client_Adapter_Exception;
 use Zend_Http_Client_Adapter_Socket;
@@ -241,7 +242,7 @@ class AuthClient extends AbstractHelper
      */
     public function getClientId($storeId = null)
     {
-        return $this->scopeConfig->getValue(Constant::XML_PATH_WEB_SERVICE_CLIENTID, $this->baseDataHelper->getStoreScope(), $storeId);
+        return $this->scopeConfig->getValue(Constant::XML_PATH_WEB_SERVICE_CLIENTID, ScopeInterface::SCOPE_STORES, $storeId);
     }
 
     public function getParamInURL($clientId)
@@ -279,7 +280,7 @@ class AuthClient extends AbstractHelper
      */
     public function getClientSecret($storeId = null)
     {
-        return $this->encryptorInterface->decrypt($this->scopeConfig->getValue(Constant::XML_PATH_WEB_SERVICE_CLIENTSECRET, $this->baseDataHelper->getStoreScope(), $storeId));
+        return $this->encryptorInterface->decrypt($this->scopeConfig->getValue(Constant::XML_PATH_WEB_SERVICE_CLIENTSECRET, ScopeInterface::SCOPE_STORES, $storeId));
     }
 
 }
