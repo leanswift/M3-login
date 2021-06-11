@@ -35,10 +35,6 @@ use Zend_Http_Client_Adapter_Socket;
 use Zend_Http_Client_Exception;
 use Magento\Store\Model\StoreManagerInterface;
 
-/**
- * Class AuthClient
- * @package LeanSwift\Login\Helper
- */
 class AuthClient extends AbstractHelper
 {
     /**
@@ -178,7 +174,6 @@ class AuthClient extends AbstractHelper
                 $responseBody = json_decode($parsedResult, true);
                 $accessToken = $responseBody['access_token'];
                 $refreshToken = $responseBody['refresh_token'];
-                //                $this->logger->writeLogInfo('New access token : ' . $accessToken);
                 $this->session->setAccessToken($accessToken);
                 $this->session->setRefreshToken($refreshToken);
             }
@@ -247,7 +242,11 @@ class AuthClient extends AbstractHelper
      */
     public function getClientId($storeId = null)
     {
-        return $this->scopeConfig->getValue(Constant::XML_PATH_WEB_SERVICE_CLIENTID, ScopeInterface::SCOPE_STORES, $storeId);
+        return $this->scopeConfig->getValue(
+            Constant::XML_PATH_WEB_SERVICE_CLIENTID,
+            ScopeInterface::SCOPE_STORES,
+            $storeId
+        );
     }
 
     public function getParamInURL($clientId)
@@ -286,7 +285,10 @@ class AuthClient extends AbstractHelper
      */
     public function getClientSecret($storeId = null)
     {
-        return $this->encryptorInterface->decrypt($this->scopeConfig->getValue(Constant::XML_PATH_WEB_SERVICE_CLIENTSECRET, ScopeInterface::SCOPE_STORES, $storeId));
+        return $this->encryptorInterface->decrypt($this->scopeConfig->getValue(
+            Constant::XML_PATH_WEB_SERVICE_CLIENTSECRET,
+            ScopeInterface::SCOPE_STORES,
+            $storeId
+        ));
     }
-
 }
