@@ -32,11 +32,6 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
 use Psr\Log\LoggerInterface;
 
-
-/**
- * Class AuthPlugin
- * @package LeanSwift\Login\Plugin\Customer
- */
 final class AuthPlugin
 {
     /**
@@ -120,8 +115,6 @@ final class AuthPlugin
             $dns = $this->auth->getDomain();
             $dnsArray = explode(",", $dns);
             if (in_array($domain, $dnsArray)) {
-                //                $authCode = $this->getAuthenticationCode($username);
-                //                if(!$authCode) {
                 $this->_coreSession->start();
                 $this->_coreSession->setEmail($username);
                 $flag = false;
@@ -132,11 +125,6 @@ final class AuthPlugin
                     throw new LocalizedException(__('Authentication Failed'));
                 }
             }
-            //            Generate token
-            //                else {
-            //                    //$this->authModel->generateToken($authCode);
-            //                }
-            //            }
         }
         if ($flag) {
             return $proceed($username, $password);
@@ -161,5 +149,4 @@ final class AuthPlugin
         }
         return '';
     }
-
 }

@@ -27,16 +27,14 @@ use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
+use Magento\Framework\UrlInterface;
 use Magento\Store\Model\ScopeInterface;
 use Zend_Http_Client;
 use Zend_Http_Client_Adapter_Exception;
 use Zend_Http_Client_Adapter_Socket;
 use Zend_Http_Client_Exception;
+use Magento\Store\Model\StoreManagerInterface;
 
-/**
- * Class AuthClient
- * @package LeanSwift\Login\Helper
- */
 class AuthClient extends AbstractHelper
 {
     /**
@@ -63,6 +61,7 @@ class AuthClient extends AbstractHelper
      * @var FormKey
      */
     protected $formKey;
+    protected $storeManager;
 
     public function __construct(
         Context $context,
@@ -71,7 +70,8 @@ class AuthClient extends AbstractHelper
         SessionManagerInterface $coreSession,
         ManagerInterface $manager,
         Logger $logger,
-        FormKey $formKey
+        FormKey $formKey,
+        StoreManagerInterface $storeManager
     ) {
         $this->encryptorInterface = $encrypt;
         $this->baseDataHelper = $baseDataHelper;
@@ -79,6 +79,7 @@ class AuthClient extends AbstractHelper
         $this->logger = $logger;
         $this->messageManager = $manager;
         $this->formKey = $formKey;
+        $this->storeManager = $storeManager;
         parent::__construct($context);
     }
 
@@ -173,7 +174,6 @@ class AuthClient extends AbstractHelper
                 $responseBody = json_decode($parsedResult, true);
                 $accessToken = $responseBody['access_token'];
                 $refreshToken = $responseBody['refresh_token'];
-                //                $this->logger->writeLogInfo('New access token : ' . $accessToken);
                 $this->session->setAccessToken($accessToken);
                 $this->session->setRefreshToken($refreshToken);
             }
@@ -242,7 +242,11 @@ class AuthClient extends AbstractHelper
      */
     public function getClientId($storeId = null)
     {
-        return $this->scopeConfig->getValue(Constant::XML_PATH_WEB_SERVICE_CLIENTID, ScopeInterface::SCOPE_STORES, $storeId);
+        return $this->scopeConfig->getValue(
+            Constant::XML_PATH_WEB_SERVICE_CLIENTID,
+            ScopeInterface::SCOPE_STORES,
+            $storeId
+        );
     }
 
     public function getParamInURL($clientId)
@@ -253,10 +257,11 @@ class AuthClient extends AbstractHelper
 
     /**
      * @return string
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getReturnUrl()
     {
-        return $this->_urlBuilder->getUrl('lslogin/index/index/');
+        return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB) . 'lslogin/index/index/';
     }
 
     /**
@@ -280,7 +285,10 @@ class AuthClient extends AbstractHelper
      */
     public function getClientSecret($storeId = null)
     {
-        return $this->encryptorInterface->decrypt($this->scopeConfig->getValue(Constant::XML_PATH_WEB_SERVICE_CLIENTSECRET, ScopeInterface::SCOPE_STORES, $storeId));
+        return $this->encryptorInterface->decrypt($this->scopeConfig->getValue(
+            Constant::XML_PATH_WEB_SERVICE_CLIENTSECRET,
+            ScopeInterface::SCOPE_STORES,
+            $storeId
+        ));
     }
-
 }
