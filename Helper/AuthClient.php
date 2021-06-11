@@ -27,11 +27,13 @@ use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
+use Magento\Framework\UrlInterface;
 use Magento\Store\Model\ScopeInterface;
 use Zend_Http_Client;
 use Zend_Http_Client_Adapter_Exception;
 use Zend_Http_Client_Adapter_Socket;
 use Zend_Http_Client_Exception;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Class AuthClient
@@ -63,6 +65,7 @@ class AuthClient extends AbstractHelper
      * @var FormKey
      */
     protected $formKey;
+    protected $storeManager;
 
     public function __construct(
         Context $context,
@@ -71,7 +74,8 @@ class AuthClient extends AbstractHelper
         SessionManagerInterface $coreSession,
         ManagerInterface $manager,
         Logger $logger,
-        FormKey $formKey
+        FormKey $formKey,
+        StoreManagerInterface $storeManager
     ) {
         $this->encryptorInterface = $encrypt;
         $this->baseDataHelper = $baseDataHelper;
@@ -79,6 +83,7 @@ class AuthClient extends AbstractHelper
         $this->logger = $logger;
         $this->messageManager = $manager;
         $this->formKey = $formKey;
+        $this->storeManager = $storeManager;
         parent::__construct($context);
     }
 
@@ -253,10 +258,11 @@ class AuthClient extends AbstractHelper
 
     /**
      * @return string
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getReturnUrl()
     {
-        return $this->_urlBuilder->getUrl('lslogin/index/index/');
+        return $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB) . 'lslogin/index/index/';
     }
 
     /**
