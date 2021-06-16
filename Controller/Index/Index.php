@@ -76,6 +76,10 @@ class Index extends Action
      * @var StoreManagerInterface
      */
     private $storeManager;
+    /**
+     * @var array|string
+     */
+    private $userDetails;
 
     /**
      * Index constructor.
@@ -157,8 +161,8 @@ class Index extends Action
                 if (!$this->validateEmail($userDetails['email'])) {
                     throw new Exception('Email entered is different from the M3 email');
                 }
+                $this->userDetails = $userDetails;
                 try {
-                    $this->_eventManager->dispatch('m3_login_userdetails', ['user_details' => $userDetails]);
                     try {
                         $this->loginCustomer($userDetails['email']);
                     } catch (Exception $e) {
@@ -193,6 +197,7 @@ class Index extends Action
         $customerRepo = $this->customerRepo->get($email, $this->storeManager->getWebsite()->getId());
         if ($customerRepo->getId()) {
             $this->customerSession->loginById($customerRepo->getId());
+            $this->_eventManager->dispatch('m3_login_userdetails', ['user_details' => $this->userDetails]);
         }
     }
 
