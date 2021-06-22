@@ -35,7 +35,7 @@
                        showInDefault="1">
                     <label>Enable Login</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Enable option to disable magento product]]></comment>
+                    <comment><![CDATA[ Enable or Disable the M3 Login Magento module]]></comment>
                 </field>
                 <field id="log" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="0"
                        showInStore="0">
@@ -65,11 +65,11 @@
                        showInWebsite="0" showInStore="0">
                     <label>Service URL for Authorization</label>
                     <validate>validate-url</validate>
-                    <comment><![CDATA[URL for Authorize Infor]]></comment>
+                    <comment><![CDATA[URL to Authorize user in Infor OS]]></comment>
                 </field>
                 <field id="mingle_url" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="0"
                        showInStore="0">
-                    <label>Service URL for Minge URL</label>
+                    <label>Service URL for Infor Mingle</label>
                     <validate>validate-url</validate>
                     <comment><![CDATA[URL for accessing Mingle API]]></comment>
                 </field>
