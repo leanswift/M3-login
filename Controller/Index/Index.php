@@ -197,7 +197,13 @@ class Index extends Action
         $customerRepo = $this->customerRepo->get($email, $this->storeManager->getWebsite()->getId());
         if ($customerRepo->getId()) {
             $this->customerSession->loginById($customerRepo->getId());
-            $this->_eventManager->dispatch('m3_login_userdetails', ['user_details' => $this->userDetails]);
+            try {
+                $this->_eventManager->dispatch('m3_login_userdetails', ['user_details' => $this->userDetails]);
+            }catch (Exception $e) {
+                $this->customerSession->logout();
+                $this->logger->writeLog($e->getMessage());
+                $this->messageManager->addErrorMessage('Authentication failed');
+            }
         }
     }
 
