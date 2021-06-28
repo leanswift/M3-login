@@ -1,34 +1,30 @@
 <?php
 /**
- * LeanSwift eConnect Extension
+ *  LeanSwift Login Extension
  *
- * NOTICE OF LICENSE
+ *  DISCLAIMER
  *
- * This source file is subject to the LeanSwift eConnect Extension License
- * that is bundled with this package in the file LICENSE.txt located in the
- * Connector Server.
+ *   This extension is licensed and distributed by LeanSwift. Do not edit or add
+ *   to this file if you wish to upgrade Extension and Connector to newer
+ *   versions in the future. If you wish to customize Extension for your needs
+ *   please contact LeanSwift for more information. You may not reverse engineer,
+ *   decompile, or disassemble LeanSwift Login Extension (All Versions),
+ *   except and only to the extent that such activity is expressly permitted by
+ *    applicable law not withstanding this limitation.
  *
- * DISCLAIMER
- *
- * This extension is licensed and distributed by LeanSwift. Do not edit or add
- * to this file if you wish to upgrade Extension and Connector to newer
- * versions in the future. If you wish to customize Extension for your needs
- * please contact LeanSwift for more information. You may not reverse engineer,
- * decompile, or disassemble LeanSwift Connector Extension (All Versions),
- * except and only to the extent that such activity is expressly permitted by
- * applicable law not withstanding this limitation.
- *
- * @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
+ * @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
  * @license     https://www.leanswift.com/end-user-licensing-agreement
+ *
  */
 
 namespace LeanSwift\Login\Controller\Adminhtml\Ion;
 
+use LeanSwift\EconnectBase\Helper\Erpapi;
+use LeanSwift\Login\Helper\Constant;
 use LeanSwift\Login\Helper\Data;
 use LeanSwift\Login\Model\ResourceModel\Userrole;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\Registry;
 
 /**
  * Class Import
@@ -37,7 +33,6 @@ use Magento\Framework\Registry;
  */
 class Import extends Action
 {
-
     /**
      * @var Data
      */
@@ -47,23 +42,27 @@ class Import extends Action
      * @var Userrole
      */
     protected $roleResource;
+    /**
+     * @var Erpapi|Data
+     */
+    protected $baseErpAPI;
 
     /**
      * Import constructor.
-     *
-     * @param Context  $context
-     * @param Registry $coreRegistry
-     * @param Data     $erpapi
-     * @param Userrole $userrole
+     * @param Context $context
+     * @param Data $data
+     * @param Userrole $userRole
+     * @param Erpapi $baseErpAPI
      */
     public function __construct(
         Context $context,
-        Registry $coreRegistry,
-        Data $erpapi,
-        Userrole $userrole
+        Data $data,
+        Userrole $userRole,
+        Erpapi $baseErpAPI
     ) {
-        $this->helper = $erpapi;
-        $this->roleResource = $userrole;
+        $this->helper = $data;
+        $this->roleResource = $userRole;
+        $this->baseErpAPI = $baseErpAPI;
         parent::__construct($context);
     }
 
@@ -74,20 +73,23 @@ class Import extends Action
      */
     public function execute()
     {
-        $roles = $this->helper->erpapi()->getRolesList();
-        $rolesInfo = $this->helper->erpapi()->getRolesInfo();
-        $message = false;
+        $erpApiObject = $this->helper->erpapi();
+        $roles = $erpApiObject->getRolesList();
+        $rolesInfo = $erpApiObject->getRolesInfo();
+        $flag = false;
         if ($roles) {
-            $message = $this->roleResource->updateRoles($roles);
+            $flag = $this->roleResource->updateRoles($roles);
         }
-        if ($rolesInfo && $message) {
-            $message = $this->roleResource->updateRoleInfo($rolesInfo);
+        if ($rolesInfo && $flag) {
+            $flag = $this->roleResource->updateRoleInfo($rolesInfo);
         }
+        $message = $this->baseErpAPI->getInitialLoadMessage(Constant::TYPE);
         $resultRedirect = $this->resultRedirectFactory->create();
-        if ($message == true) {
-            $this->messageManager->addSuccess(__('User and Role import was successful!'));
+        if ($flag) {
+            $this->roleResource->updateImportHistory();
+            $this->messageManager->addSuccess($message);
         } else {
-            $this->messageManager->addErrorMessage(__('User and Role import was failed!'));
+            $this->messageManager->addErrorMessage('User and Role import was failed!');
         }
         return $resultRedirect->setUrl($this->_redirect->getRefererUrl());
     }

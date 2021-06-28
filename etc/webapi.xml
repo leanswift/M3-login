@@ -16,11 +16,12 @@
   ~   @license     https://www.leanswift.com/end-user-licensing-agreement
   ~
   -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
-    <router id="standard">
-        <route id="lslogin" frontName="lslogin">
-            <module name="LeanSwift_Login"/>
-        </route>
-    </router>
-</config>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <route method="POST" url="/V1/m3Login/messages/">
+        <service class="LeanSwift\EconnectBase\Api\IONConnectionInterface" method="postMessages"/>
+        <resources>
+            <resource ref="LeanSwift_EconnectBase::econnectBaseAPI"/>
+        </resources>
+    </route>
+</routes>

@@ -1,30 +1,101 @@
 <?xml version="1.0"?>
 <!--
-  ~ LeanSwift eConnect Extension
+  ~  LeanSwift Login Extension
   ~
-  ~ NOTICE OF LICENSE
+  ~  DISCLAIMER
   ~
-  ~ This source file is subject to the LeanSwift eConnect Extension License
-  ~ that is bundled with this package in the file LICENSE.txt located in the
-  ~ Connector Server.
+  ~   This extension is licensed and distributed by LeanSwift. Do not edit or add
+  ~   to this file if you wish to upgrade Extension and Connector to newer
+  ~   versions in the future. If you wish to customize Extension for your needs
+  ~   please contact LeanSwift for more information. You may not reverse engineer,
+  ~   decompile, or disassemble LeanSwift Login Extension (All Versions),
+  ~   except and only to the extent that such activity is expressly permitted by
+  ~    applicable law not withstanding this limitation.
   ~
-  ~ DISCLAIMER
+  ~   @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
+  ~   @license     https://www.leanswift.com/end-user-licensing-agreement
   ~
-  ~ This extension is licensed and distributed by LeanSwift. Do not edit or add
-  ~ to this file if you wish to upgrade Extension and Connector to newer
-  ~ versions in the future. If you wish to customize Extension for your needs
-  ~ please contact LeanSwift for more information. You may not reverse engineer,
-  ~ decompile, or disassemble LeanSwift Connector Extension (All Versions),
-  ~ except and only to the extent that such activity is expressly permitted by
-  ~ applicable law not withstanding this limitation.
-  ~
-  ~ @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
-  ~ @license     https://www.leanswift.com/end-user-licensing-agreement
   -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <type name="Magento\Customer\Model\AccountManagement">
-        <plugin name="LeanSwift_Login::CustomerPlugin"
-                type="LeanSwift\Login\Plugin\Customer\AuthPlugin" sortOrder="100"/>
+        <plugin name="LoginAuthPlugin" type="LeanSwift\Login\Plugin\Customer\AuthPlugin" sortOrder="100"/>
     </type>
+
+    <type name="LeanSwift\EconnectBase\Helper\Erpapi">
+        <plugin name="login-erpapi-plugin" type="LeanSwift\Login\Plugin\ErpapiPlugin" sortOrder="2"/>
+    </type>
+
+    <virtualType name="M3LoginHandler" type="Magento\Framework\Logger\Handler\Base">
+        <arguments>
+            <argument name="fileName" xsi:type="const">LeanSwift\Login\Helper\Constant::LOGGER_NAME</argument>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="M3LoginLogger" type="Monolog\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">M3LoginLogger</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">M3LoginHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <type name="LeanSwift\Login\Helper\Logger">
+        <arguments>
+            <argument name="logger" xsi:type="object">M3LoginLogger</argument>
+        </arguments>
+    </type>
+
+    <type name="LeanSwift\EconnectBase\Helper\Version">
+        <arguments>
+            <argument name="config" xsi:type="array">
+                <item name="login" xsi:type="array">
+                    <item name="label" xsi:type="const">LeanSwift\Login\Helper\Data::VERSION_LABEL</item>
+                    <item name="version" xsi:type="const">LeanSwift\Login\Helper\Data::VERSION</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="LeanSwift\EconnectBase\Helper\QueueProcessor">
+        <arguments>
+            <argument name="queueList" xsi:type="array">
+                <!-- LS User Roles BOD -->
+                <item name="SyncLSUserRoles" xsi:type="string">leanswift.login.userroles.sync.queue</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="LeanSwift\EconnectBase\Helper\LogViewer">
+        <arguments>
+            <argument name="listLogFiles" xsi:type="array">
+                <item name="M3Login-M3Login.Log" xsi:type="string">/var/log/m3Login.log</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="BitExpert\ForceCustomerLogin\Controller\Adminhtml\Manage\RestoreDefault">
+        <arguments>
+            <argument name="defaultRoutes" xsi:type="array">
+                <item name="/lslogin/index/index" xsi:type="string">M3 Login Page</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Customer\Controller\Account\LoginPost">
+        <plugin name="LoginAccountPlugin" type="LeanSwift\Login\Plugin\Customer\LoginPost" sortOrder="100"/>
+    </type>
+
+    <virtualType name="LoginModuleVersion" type="LeanSwift\EconnectBase\Service\ModuleVersion">
+        <arguments>
+            <argument name="packageName" xsi:type="string">leanswift/module-login</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="LoginModuleVersionBlock" type="LeanSwift\EconnectBase\Block\Backend\Version">
+        <arguments>
+            <argument name="version" xsi:type="object">LoginModuleVersion</argument>
+        </arguments>
+    </virtualType>
 </config>

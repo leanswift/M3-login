@@ -24,9 +24,10 @@
 
 namespace LeanSwift\Login\Helper;
 
-use LeanSwift\Econnect\Helper\Ion as IonHelper;
-use LeanSwift\Login\Model\Api\Adapter;
+use LeanSwift\EconnectBase\Helper\Constant;
+use LeanSwift\EconnectBase\Helper\Erpapi as BaseErpApi;
 use LeanSwift\Login\Model\ResourceModel\Userrole;
+use Magento\Framework\Serialize\SerializerInterface as Json;
 
 /**
  * Class Erpapi
@@ -46,17 +47,8 @@ class Erpapi
     const ROLE_INFO = '/apiTxn/SES400MI/Lst';
 
     const AUTH_BY_ROLE = '/apiTxn/SES400MI/LstAuthByRole';
-
-    /**
-     * @var Adapter
-     */
-    private $apiadapter;
-
-    /**
-     * @var IonHelper
-     */
-    private $helper;
-
+    protected $baseErpApi;
+    protected $serialize;
     /**
      * @var Userrole
      */
@@ -64,60 +56,74 @@ class Erpapi
 
     /**
      * Erpapi constructor.
-     *
-     * @param Adapter   $adapter
-     * @param IonHelper $ion
-     * @param Userrole  $userroleResource
+     * @param Json $serialize
+     * @param Userrole $userroleResource
+     * @param BaseErpApi $baseErpApi
      */
-    public function __construct(Adapter $adapter, IonHelper $ion, Userrole $userroleResource)
-    {
-        $this->apiadapter = $adapter;
-        $this->helper = $ion;
+    public function __construct(
+        Json $serialize,
+        Userrole $userroleResource,
+        BaseErpApi $baseErpApi
+    ) {
+        $this->serialize = $serialize;
         $this->userrole = $userroleResource;
+        $this->baseErpApi = $baseErpApi;
+    }
+
+    public function getSerializerObject()
+    {
+        return $this->serialize;
     }
 
     public function getUserRoles($username)
     {
         $method = self::ROLE_BY_USER;
         $requestData['USID'] = $username;
-        $response = $this->doRequest($method, $requestData, 60);
-        $response = json_decode($response, true);
-        $roles = [];
-        if (is_array($response) && array_key_exists('output', $response)) {
-            foreach ($response['output'] as $data) {
-                $res['Role'] = $data['ROLL'];
-                $res['ValidFrom'] = ($data['FVDT']) ?? '';
-                $res['ValidTo'] = ($data['VTDT']) ?? '';
-                $roles [] = $res;
-                unset($res);
+        $response = $this->doRequest($method, $requestData);
+        //$response = json_decode($response, true);
+        $rolesData = [];
+
+        if ($response && array_key_exists(Constant::DATA, $response)) {
+            $responseData = (array_key_exists(Constant::OUTPUT, $response[Constant::DATA])) ? ($response[Constant::DATA]['output']) : false;
+            if ($responseData) {
+                foreach ($responseData as $data) {
+                    $res['Role'] = $data['ROLL'];
+                    $res['ValidFrom'] = ($data['FVDT']) ?? '';
+                    $res['ValidTo'] = ($data['VTDT']) ?? '';
+                    $roles [] = $res;
+                    $rolesData = $this->serialize->serialize($roles);
+                    unset($res);
+                }
             }
         }
-
-        return $this->helper->getSerializeObject()->serialize($roles);
+        return $rolesData;
     }
 
-    public function doRequest($method, $requestData, $timeout = 30)
+    public function doRequest($method, $requestData)
     {
-        return $this->apiadapter->_sendRequest($method, $requestData, $timeout);
+        return $this->baseErpApi->doRequest($requestData, $method);
     }
 
     public function getRolesList()
     {
         $method = self::ROLE_LIST;
         $requestData['ROLL'] = '';
-        $response = $this->doRequest($method, $requestData, 60);
-        $response = json_decode($response, true);
+        $response = $this->doRequest($method, $requestData);
+        //$response = json_decode($response, true);
         $roleList = [];
-        if (is_array($response) && array_key_exists('output', $response)) {
-            foreach ($response['output'] as $data) {
-                $res['role'] = $data['ROLL'];
-                $res['name'] = $data['TX15'];
-                $res['description'] = ($data['TX40']) ?? '';
-                $roleList [] = $res;
-                unset($res);
+
+        if ($response && array_key_exists(Constant::DATA, $response)) {
+            $responseData = (array_key_exists(Constant::OUTPUT, $response[Constant::DATA])) ? ($response[Constant::DATA]['output']) : false;
+            if ($responseData) {
+                foreach ($responseData as $data) {
+                    $res['role'] = $data['ROLL'];
+                    $res['name'] = $data['TX15'];
+                    $res['description'] = ($data['TX40']) ?? '';
+                    $roleList [] = $res;
+                    unset($res);
+                }
             }
         }
-
         return $roleList;
     }
 
@@ -125,17 +131,21 @@ class Erpapi
     {
         $method = self::ROLE_INFO;
         $requestData['ROLL'] = '';
-        $response = $this->doRequest($method, $requestData, 60);
-        $response = json_decode($response, true);
+        $response = $this->doRequest($method, $requestData);
+        //$response = json_decode($response, true);
         $roleInfo = [];
-        if (is_array($response) && array_key_exists('output', $response)) {
-            foreach ($response['output'] as $data) {
-                $res['role'] = $data['ROLL'];
-                $res['function'] = $data['FNID'];
-                $res['company'] = ($data['CONO']) ?? '';
-                $res['division'] = ($data['DIVI']) ?? '';
-                $roleInfo [] = $res;
-                unset($res);
+
+        if ($response && array_key_exists(Constant::DATA, $response)) {
+            $responseData = (array_key_exists(Constant::OUTPUT, $response[Constant::DATA])) ? ($response[Constant::DATA]['output']) : false;
+            if ($responseData) {
+                foreach ($responseData as $data) {
+                    $res['role'] = $data['ROLL'];
+                    $res['function'] = $data['FNID'];
+                    $res['company'] = ($data['CONO']) ?? '';
+                    $res['division'] = ($data['DIVI']) ?? '';
+                    $roleInfo [] = $res;
+                    unset($res);
+                }
             }
         }
 
@@ -146,20 +156,23 @@ class Erpapi
     {
         $method = self::AUTH_BY_ROLE;
         $requestData['ROLL'] = $role;
-        $response = $this->doRequest($method, $requestData, 60);
-        $response = json_decode($response, true);
+        $response = $this->doRequest($method, $requestData);
+        //$response = json_decode($response, true);
         $roleInfo = [];
-        if (is_array($response) && array_key_exists('output', $response)) {
-            foreach ($response['output'] as $data) {
-                $company = ($data['CONO']) ?? '';
-                $division = ($data['DIVI']) ?? '';
-                if ($cono == $company && $divi == $division) {
-                    $res['role'] = $data['ROLL'];
-                    $res['function'] = $data['FNID'];
-                    $res['company']
-                        = $res['division'] = ($data['DIVI']) ?? '';
-                    $roleInfo [] = $res;
-                    unset($res);
+
+        if ($response && array_key_exists(Constant::DATA, $response)) {
+            $responseData = (array_key_exists(Constant::OUTPUT, $response[Constant::DATA])) ? ($response[Constant::DATA]['output']) : false;
+            if ($responseData) {
+                foreach ($responseData as $data) {
+                    $company = ($data['CONO']) ?? '';
+                    $division = ($data['DIVI']) ?? '';
+                    if ($cono == $company && $divi == $division) {
+                        $res['role'] = $data['ROLL'];
+                        $res['function'] = $data['FNID'];
+                        $res['company'] = $res['division'] = ($data['DIVI']) ?? '';
+                        $roleInfo [] = $res;
+                        unset($res);
+                    }
                 }
             }
         }
@@ -177,5 +190,18 @@ class Erpapi
     public function userRoleModel()
     {
         return $this->userrole;
+    }
+
+    /**
+     * Format the XML
+     *
+     * @param $string
+     * @return string|string[]|null
+     */
+    public function utf8_for_xml($string)
+    {
+        $string = preg_replace('/[[:^print:]]/', '', $string);
+
+        return preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $string);
     }
 }

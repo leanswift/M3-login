@@ -1,93 +1,121 @@
 <?php
 /**
- * LeanSwift eConnect Extension
+ *  LeanSwift Login Extension
  *
- * NOTICE OF LICENSE
+ *  DISCLAIMER
  *
- * This source file is subject to the LeanSwift eConnect Extension License
- * that is bundled with this package in the file LICENSE.txt located in the
- * Connector Server.
+ *   This extension is licensed and distributed by LeanSwift. Do not edit or add
+ *   to this file if you wish to upgrade Extension and Connector to newer
+ *   versions in the future. If you wish to customize Extension for your needs
+ *   please contact LeanSwift for more information. You may not reverse engineer,
+ *   decompile, or disassemble LeanSwift Login Extension (All Versions),
+ *   except and only to the extent that such activity is expressly permitted by
+ *    applicable law not withstanding this limitation.
  *
- * DISCLAIMER
- *
- * This extension is licensed and distributed by LeanSwift. Do not edit or add
- * to this file if you wish to upgrade Extension and Connector to newer
- * versions in the future. If you wish to customize Extension for your needs
- * please contact LeanSwift for more information. You may not reverse engineer,
- * decompile, or disassemble LeanSwift Connector Extension (All Versions),
- * except and only to the extent that such activity is expressly permitted by
- * applicable law not withstanding this limitation.
- *
- * @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
+ * @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
  * @license     https://www.leanswift.com/end-user-licensing-agreement
+ *
  */
 
 namespace LeanSwift\Login\Model;
 
+use Exception;
 use LeanSwift\Login\Helper\AuthClient;
+use LeanSwift\Login\Helper\Constant;
+use LeanSwift\Login\Helper\Logger;
 use LeanSwift\Login\Model\Api\Adapter;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Framework\Session\SessionManagerInterface;
+use Zend_Http_Client_Adapter_Exception;
+use Zend_Http_Client_Exception;
 
+/**
+ * Class Authentication
+ * @package LeanSwift\Login\Model
+ */
 class Authentication
 {
-
+    /**
+     * @var SessionManagerInterface
+     */
+    protected $_coreSession;
     /**
      * @var AuthClient
      */
     private $auth;
-
     /**
      * @var CustomerFactory
      */
     private $customerFactory;
-
     /**
      * @var CustomerRepositoryInterface
      */
     private $customerRepo;
-
     /**
      * @var Adapter
      */
-    private $erpApi;
+    private $logger;
+    /**
+     * @var mixed|string
+     */
+    private $authKey;
 
     /**
      * Authentication constructor.
      *
-     * @param AuthClient                  $authClient
-     * @param CustomerFactory             $customerFactory
+     * @param AuthClient $authClient
+     * @param CustomerFactory $customerFactory
      * @param CustomerRepositoryInterface $customerRepository
-     * @param SessionManagerInterface     $coreSession
-     * @param Adapter                     $adapter
+     * @param SessionManagerInterface $coreSession
+     * @param Logger $logger
      */
     public function __construct(
         AuthClient $authClient,
         CustomerFactory $customerFactory,
         CustomerRepositoryInterface $customerRepository,
         SessionManagerInterface $coreSession,
-        Adapter $adapter
+        Logger $logger,
+        $authkey = 'Email'
     ) {
         $this->auth = $authClient;
         $this->customerFactory = $customerFactory;
         $this->customerRepo = $customerRepository;
         $this->_coreSession = $coreSession;
-        $this->erpApi = $adapter;
+        $this->logger = $logger;
+        $this->authKey = $authkey;
     }
 
-    public function generateToken($code)
+    /**
+     * @param $code
+     * @param int $timeout
+     * @return string
+     * @throws Zend_Http_Client_Adapter_Exception
+     * @throws Zend_Http_Client_Exception
+     */
+    public function generateToken($code, $timeout = 60)
     {
         $accessToken = '';
         $client = $this->auth->getClient();
         $url = $this->auth->getTokenLink();
+        if (!$url) {
+            $this->logger->writeLog('Service URL for Token is not configured');
+            return '';
+        }
         $client->setUri($url);
-        $credentials['client_id'] = $this->auth->getClientId();
-        $credentials['client_secret'] = $this->auth->getClientSecret();
+        $clientId = $this->auth->getClientId();
+        $clientSecret = $this->auth->getClientSecret();
+        if (!$clientId || !$clientSecret) {
+            $this->logger->writeLog('Please Check Oauth credentials, there might be a problem on creating access token !');
+            return '';
+        }
+        $credentials['client_id'] = $clientId;
+        $credentials['client_secret'] = $clientSecret;
         $credentials['grant_type'] = 'authorization_code';
         $credentials['code'] = $code;
+        $credentials['redirect_uri'] = $this->auth->getReturnUrl();
         $client->setParameterPost($credentials);
-        $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);
+        $client->setConfig(['maxredirects' => 3, 'timeout' => $timeout]);
         try {
             $response = $client->request('POST');
             if ($response->getStatus() == 200) {
@@ -95,113 +123,163 @@ class Authentication
                 $responseBody = json_decode($parsedResult, true);
                 $accessToken = $responseBody['access_token'];
                 $refreshToken = $responseBody['refresh_token'];
-                $this->auth->logger()->writeLog('New access token : ' . $accessToken);
+                //                $this->logger->writeLog('New access token : ' . $accessToken);
                 $this->_coreSession->start();
                 $this->_coreSession->setAccessToken($accessToken);
                 $this->_coreSession->setRefreshToken($refreshToken);
             }
         } catch (Exception $e) {
-            $this->auth->logger()->writeLog('API request failed' . $e->getMessage());
+            $this->logger->writeLog('API request failed: ' . $e->getMessage());
         }
-
         return $accessToken;
     }
 
+    /**
+     * @param $accessToken
+     * @return array|string
+     */
     public function getUserName($accessToken)
     {
-        if (!$accessToken) {
-            return false;
-        }
-        $client = $this->auth->getClient();
+        $customerData = [];
         $mingleUrl = $this->auth->getMingleLink();
-        $url = $mingleUrl . '/api/v1/mingle/go/User/Detail';
-        $client->setHeaders(
-            ['Authorization' => 'Bearer ' . $accessToken]
-        );
-        $client->setUri($url);
-        $client->setRawData('', 'application/json');
-        $client->setConfig(['maxredirects' => 3, 'timeout' => 20, 'keepalive' => true]);
-        $userDetailList = false;
-        $username = false;
-        try {
-            $response = $client->request('POST');
-            if ($response->getStatus() == 200) {
-                $parsedResult = $response->getBody();
-                $responseBody = json_decode($parsedResult, true);
-                $userDetailList = $responseBody['UserDetailList'][0];
-            }
-        } catch (Exception $e) {
-            $this->auth->logger()->writeLog('API request failed' . $e->getMessage());
+        if (!$mingleUrl) {
+            return '';
         }
-        if ($userDetailList) {
-            $username = false;
-            $usercode = $userDetailList['UserName'];
-            $email = $userDetailList['Email'];
+        $userDetailList = $this->getUserDetails($mingleUrl, $accessToken);
+        if (!empty($userDetailList)) {
+            $authorizeKey = $this->authKey;
+            $userCode = $userDetailList['UserName'];
+            $email = $userDetailList[$authorizeKey] ?? '';
             $firstName = $userDetailList['FirstName'];
             $lastName = $userDetailList['LastName'];
+            $personID = $userDetailList['PersonId'];
             $customerData = [
-                'email'     => $email,
+                'email' => $email,
                 'firstname' => $firstName,
-                'lastname'  => $lastName,
+                'lastname' => $lastName,
+                'username' => '',
+                'personId' => $personID
             ];
-            $data['EUID'] = $usercode;
-            $url = $this->auth->getIonLink() . "/MNS150MI/GetUserByEuid?EUID=$usercode";
-            $method = '';
-            $recordInfo = $this->sendRequest('', $method, 20, $url, null, 'GET');
-            if ($recordInfo['results']) {
-                $username = $recordInfo['results'][0]['records'][0]['USID'];
-                $customerData['username'] = $username;
+            $isCloud = $this->auth->isCloudHost();
+            if ($isCloud) {
+                $customerData['username'] = $this->getUserNameDetail($accessToken, $userCode);
+            } else {
+                $customerData['username'] = $userDetailList['PersonId'];
             }
+            //$data['EUID'] = $userCode;
         }
-
         return $customerData;
     }
 
-    public function sendRequest($data, $method, $timeout = 20, $url = null, $client = null, $requestType = 'POST')
+    /**
+     * @param $mingleUrl
+     * @param $accessToken
+     * @param string $method
+     * @return array
+     */
+    public function getUserDetails($mingleUrl, $accessToken, $method = Constant::MINGLE_USER_DETAIL)
+    {
+        $params['url'] = $mingleUrl;
+        $params['method'] = $method;
+        $params['token'] = $accessToken;
+        $responseBody = $this->sendRequest($params);
+        if (!empty($responseBody)) {
+            return $responseBody['UserDetailList'][0];
+        }
+        return [];
+    }
+
+    public function sendRequest($params, $requestType = 'GET', $timeout = 20)
     {
         $responseBody = false;
-        if ($client == null) {
+        $beforeTime = microtime(true);
+        if (!isset($params['client'])) {
             $client = $this->auth->getClient();
+        } else {
+            $client = $params['client'];
         }
-        if ($url == null) {
-            $url = $this->auth->getIonLink() . $method;
-        }
-        $accessToken = $this->_coreSession->getAccessToken();
+        $url = $params['url'] . $params['method'];
+        $accessToken = isset($params['token']) ? $params['token'] : $this->_coreSession->getAccessToken();
         $client->setUri($url);
-        $client->setHeaders(
-            ['Authorization' => 'Bearer ' . $accessToken]
-        );
+        $client->setHeaders(['Authorization' => 'Bearer ' . $accessToken]);
         $client->setHeaders(['accept' => 'application/json;charset=utf-8']);
-        if ($data) {
-            $data = json_encode($data);
+        if (isset($params['data'])) {
+            $data = json_encode($params['data']);
+        } else {
+            $data = '';
         }
-        $client->setRawData('{}', 'application/json');
+        $client->setRawData($data, 'application/json');
         $client->setConfig(['maxredirects' => 3, 'timeout' => $timeout, 'keepalive' => true]);
+        $afterTime = microtime(true);
+        $rTime = $afterTime - $beforeTime;
         try {
             $response = $client->request($requestType);
+            $parsedResult = $response->getBody();
             if ($response->getStatus() == 200) {
-                $parsedResult = $response->getBody();
                 $responseBody = json_decode($parsedResult, true);
             }
+            $this->logger->writeLog($params['method'] . ' Transaction Data:' . $data . 'Response: ' . $parsedResult . 'Response Time in secs:' . $rTime);
         } catch (Exception $e) {
-            $this->auth->logger()->writeLog('API request failed' . $e->getMessage());
+            $this->logger->writeLog($params['method'] . ' Transaction Data:' . 'API request failed:  - ' . $e->getMessage());
         }
-
         return $responseBody;
     }
 
-    public function requestToken()
+    /**
+     * @param $token
+     * @param string $userCode
+     * @param string $method
+     * @param string $userId
+     * @return string
+     */
+    public function getUserNameDetail(
+        $token,
+        $userCode = '',
+        $method = Constant::GET_USER_BY_EUID,
+        $userId = Constant::USID
+    ) {
+        $userName = '';
+        $params['url'] = $this->auth->getIonAPIServiceLink();
+        $params['token'] = $token;
+        if ($userCode) {
+            $params['method'] = $method . $userCode;
+        } else {
+            $params['method'] = $method;
+        }
+        $recordInfo = $this->sendRequest($params);
+        if (!empty($recordInfo)) {
+            array_walk_recursive($recordInfo, function ($value, $key) use (&$userName, &$userId) {
+                if ($key == $userId) {
+                    $userName = $value;
+                }
+            });
+        }
+        return $userName;
+    }
+
+    public function requestToken($timeout = 60)
     {
         $accessToken = '';
         $client = $this->auth->getClient();
         $url = $this->auth->getOauthLink();
+        if (!$url) {
+            return '';
+        }
         $client->setUri($url);
-        $credentials['client_id'] = $this->auth->getClientId();
-        $credentials['client_secret'] = $this->auth->getClientSecret();
+        $clientId = $this->auth->getClientId();
+        $clientSecret = $this->auth->getClientSecret();
+        if (!$clientId || !$clientSecret) {
+            return '';
+        }
+        $credentials['client_id'] = $clientId;
+        $credentials['client_secret'] = $clientSecret;
         $credentials['grant_type'] = 'refresh_token';
         $credentials['refresh_token'] = $this->_coreSession->getRefreshToken();
         $client->setParameterPost($credentials);
-        $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);
+        try {
+            $client->setConfig(['maxredirects' => 3, 'timeout' => $timeout]);
+        } catch (Zend_Http_Client_Exception $e) {
+        }
         try {
             $response = $client->request('POST');
             if ($response->getStatus() == 200) {
@@ -209,12 +287,13 @@ class Authentication
                 $responseBody = json_decode($parsedResult, true);
                 $accessToken = $responseBody['access_token'];
                 $refreshToken = $responseBody['refresh_token'];
-                $this->auth->logger()->writeLog('New access token : ' . $accessToken);
+                //                $this->logger->writeLog('New access token : ' . $accessToken);
                 $this->_coreSession->setAccessToken($accessToken);
                 $this->_coreSession->setRefreshToken($refreshToken);
             }
         } catch (Exception $e) {
-            return $this->auth->logger()->writeLog('API request failed' . $e->getMessage());
+            $this->logger->writeLog('API request failed: ' . $e->getMessage());
+            return false;
         }
         return $accessToken;
     }

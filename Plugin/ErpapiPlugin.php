@@ -17,17 +17,30 @@
  *
  */
 
-namespace LeanSwift\Login\Helper;
+namespace LeanSwift\Login\Plugin;
+
+use LeanSwift\EconnectBase\Helper\Erpapi;
+use LeanSwift\Login\Helper\Constant;
 
 /**
- * Class Xpath
- * @package LeanSwift\Login\Helper
+ * Class ErpapiPlugin
+ * @package LeanSwift\Login\Plugin
  */
-class Xpath
+class ErpapiPlugin
 {
-    const UserRoles_VariationId = "LSUserRolesHeader/DocumentID/ID/@variationID";
-    const BOD_ID_PATH = 'ApplicationArea/BODID';
-    const CREATION_DATE_TIME = 'ApplicationArea/CreationDateTime';
-    const ACTION_PATH = 'ActionCriteria/ActionExpression/_attribute/actionCode';
-    const DATA_AREA_PATH = '_value/DataArea';
+    /**
+     * Label Conversion Name
+     *
+     * @param Erpapi $subject
+     * @param callable $proceed
+     * @param $type
+     * @return string
+     */
+    public function aroundTransactionTypeLabelConversion(Erpapi $subject, callable $proceed, $type)
+    {
+        if ($type == Constant::TYPE) {
+            return Constant::TYPE;
+        }
+        return $proceed($type);
+    }
 }

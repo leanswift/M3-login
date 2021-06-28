@@ -1,30 +1,28 @@
 <?php
 /**
- * LeanSwift eConnect Extension
+ *  LeanSwift Login Extension
  *
- * NOTICE OF LICENSE
+ *  DISCLAIMER
  *
- * This source file is subject to the LeanSwift eConnect Extension License
- * that is bundled with this package in the file LICENSE.txt located in the
- * Connector Server.
+ *   This extension is licensed and distributed by LeanSwift. Do not edit or add
+ *   to this file if you wish to upgrade Extension and Connector to newer
+ *   versions in the future. If you wish to customize Extension for your needs
+ *   please contact LeanSwift for more information. You may not reverse engineer,
+ *   decompile, or disassemble LeanSwift Login Extension (All Versions),
+ *   except and only to the extent that such activity is expressly permitted by
+ *    applicable law not withstanding this limitation.
  *
- * DISCLAIMER
- *
- * This extension is licensed and distributed by LeanSwift. Do not edit or add
- * to this file if you wish to upgrade Extension and Connector to newer
- * versions in the future. If you wish to customize Extension for your needs
- * please contact LeanSwift for more information. You may not reverse engineer,
- * decompile, or disassemble LeanSwift Connector Extension (All Versions),
- * except and only to the extent that such activity is expressly permitted by
- * applicable law not withstanding this limitation.
- *
- * @copyright   Copyright (c) 2019 LeanSwift Inc. (http://www.leanswift.com)
+ * @copyright   Copyright (c) 2021 LeanSwift Inc. (http://www.leanswift.com)
  * @license     https://www.leanswift.com/end-user-licensing-agreement
+ *
  */
 
 namespace LeanSwift\Login\Block\Backend\Roles\Ion;
 
+use LeanSwift\EconnectBase\Helper\Data as BaseDataHelper;
+use LeanSwift\Login\Helper\Constant;
 use Magento\Backend\Block\Template\Context;
+use Magento\Backend\Block\Widget\Button;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\App\Request\Http as RequestInterface;
 use Magento\Framework\Data\Form\Element\AbstractElement;
@@ -37,7 +35,6 @@ use Magento\Framework\Exception\LocalizedException;
  */
 class Initial extends Field
 {
-
     /**
      * Controller path
      */
@@ -46,26 +43,32 @@ class Initial extends Field
     /**
      * @var string
      */
-    public $buttonLabel = 'Import Roles';
+    public $buttonLabel = 'Import';
 
     /**
      * @var RequestInterface
      */
     protected $_request;
+    /**
+     * @var BaseDataHelper
+     */
+    protected $baseDataHelper;
 
     /**
      * Initial constructor.
-     *
-     * @param Context          $context
+     * @param Context $context
      * @param RequestInterface $request
-     * @param array            $data
+     * @param BaseDataHelper $baseDataHelper
+     * @param array $data
      */
     public function __construct(
         Context $context,
         RequestInterface $request,
+        BaseDataHelper $baseDataHelper,
         array $data = []
     ) {
         $this->_request = $request;
+        $this->baseDataHelper = $baseDataHelper;
         parent::__construct($context, $data);
         $this->setTemplate('system/config/button.phtml');
     }
@@ -89,19 +92,25 @@ class Initial extends Field
      */
     public function getButtonHtml()
     {
+        $type = Constant::TYPE;
         $website = $this->_request->getParam('website');
         $redirectUrl = $this->getRedirectUrl() . "website/$website";
-        $button = $this->getLayout()->createBlock(
-            'Magento\Backend\Block\Widget\Button'
-        )->setData(
-            [
-                'id'      => 'Import button',
-                'label'   => __('Import Roles'),
-                'onclick' => 'window.location="' . $redirectUrl . '";',
-            ]
-        );
-
-        return $button->toHtml();
+        $message = $this->getMessage();
+        $timeZone = $this->baseDataHelper->getTimeZone();
+        $lastUpdatedTime = $this->baseDataHelper->getLastUpdatedAtHistory($type) ?? '';
+        $html = $this->getLayout()
+            ->createBlock(Button::class)
+            ->setType('button')
+            ->setLabel($this->buttonLabel)
+            ->setOnClick("javascript:check('" . $redirectUrl . "','" . $message . "'); return false;")
+            ->toHtml();
+        $html .= '<p style="display: inline;">';
+        $html .= 'Last synced: ';
+        if ($lastUpdatedTime) {
+            $html .= $lastUpdatedTime . ' [' . $timeZone . ']';
+        }
+        $html .= '</p>';
+        return $html;
     }
 
     /**
@@ -111,8 +120,17 @@ class Initial extends Field
      */
     public function getRedirectUrl()
     {
-        $url = $this->getUrl(self::ION_CONFIG_URL);
-        return $url;
+        return $this->getUrl(self::ION_CONFIG_URL);
+    }
+
+    /**
+     * Return confirmation popup message
+     *
+     * @return string
+     */
+    public function getMessage()
+    {
+        return "Are you sure you want to import user roles data from M3?";
     }
 
     /**

@@ -17,10 +17,9 @@
   ~
   -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
-    <router id="standard">
-        <route id="lslogin" frontName="lslogin">
-            <module name="LeanSwift_Login"/>
-        </route>
-    </router>
+        xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/topology.xsd">
+    <exchange name="magento" type="topic" connection="amqp-leanswift">
+        <binding id="userRolesSyncBinding" topic="leanswift.login.userroles.sync.queue" destinationType="queue"
+                 destination="leanswift.login.userroles.sync.queue"/>
+    </exchange>
 </config>

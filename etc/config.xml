@@ -17,10 +17,12 @@
   ~
   -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
-    <router id="standard">
-        <route id="lslogin" frontName="lslogin">
-            <module name="LeanSwift_Login"/>
-        </route>
-    </router>
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <leanswift_login>
+            <general>
+                <validate_email>Email</validate_email>
+            </general>
+        </leanswift_login>
+    </default>
 </config>

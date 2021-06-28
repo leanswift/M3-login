@@ -26,10 +26,10 @@ use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 
 /**
- * Class AddUsernameAttribute
+ * Class AddAuthenticationCode
  * @package LeanSwift\Login\Setup\Patch\Data
  */
-class AddUsernameAttribute implements DataPatchInterface
+class AddAuthenticationCode implements DataPatchInterface
 {
 
     /**
@@ -48,7 +48,7 @@ class AddUsernameAttribute implements DataPatchInterface
     private $customerSetupFactory;
 
     /**
-     * AddUsernameAttribute constructor.
+     * AddAuthenticationCode constructor.
      * @param ModuleDataSetupInterface $moduleDataSetup
      * @param AttributeSetFactory $attributeSetFactory
      * @param CustomerSetupFactory $customerSetupFactory
@@ -76,7 +76,7 @@ class AddUsernameAttribute implements DataPatchInterface
      */
     public static function getVersion()
     {
-        return '1.0.1';
+        return [];
     }
 
     /**
@@ -90,9 +90,9 @@ class AddUsernameAttribute implements DataPatchInterface
 
         $attributeSet = $this->attributeSetFactory->create();
         $attributeGroupId = $attributeSet->getDefaultGroupId($attributeSetId);
-        $customerSetup->addAttribute(Customer::ENTITY, 'username', [
+        $customerSetup->addAttribute(Customer::ENTITY, 'authentication_code', [
                 'type' => 'varchar',
-                'label' => 'UserName',
+                'label' => 'Authentication code',
                 'input' => 'text',
                 'required' => false,
                 'is_used_in_grid' => true,
@@ -103,7 +103,7 @@ class AddUsernameAttribute implements DataPatchInterface
                 'visible' => true,
             ]);
 
-        $attribute = $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, 'username')->addData([
+        $attribute = $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, 'authentication_code')->addData([
             'attribute_set_id' => $attributeSetId,
             'attribute_group_id' => $attributeGroupId,
             'used_in_forms' => ['adminhtml_customer'],
