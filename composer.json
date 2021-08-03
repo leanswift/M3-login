@@ -2,10 +2,10 @@
     "name": "leanswift/module-login",
     "description": "LeanSwift M3Login Module",
     "require": {
-        "leanswift/module-econnect-base": ">=6.0.0"
+        "leanswift/module-econnect-base": ">=6.1.0"
     },
     "type": "magento2-module",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "license": [
         "proprietary"
     ],
