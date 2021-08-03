@@ -169,7 +169,6 @@ class Index extends Action
                         $this->createCustomer($userDetails);
                     }
                 } catch (Exception $e) {
-                    $this->messageManager->addErrorMessage('Authentication failed');
                     throw new Exception($e->getMessage());
                 }
             } else {
