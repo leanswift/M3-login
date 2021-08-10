@@ -161,8 +161,8 @@ class Index extends Action
                 if (!$this->validateEmail($userDetails['email'])) {
                     throw new Exception('Email entered is different from the M3 email');
                 }
-                $this->userDetails = $userDetails;
                 try {
+                    $this->_eventManager->dispatch('m3_login_validate_userdetails', ['user_details' => $userDetails]);
                     try {
                         $this->loginCustomer($userDetails['email']);
                     } catch (Exception $e) {
@@ -198,11 +198,11 @@ class Index extends Action
         if ($customerRepo->getId()) {
             $this->customerSession->loginById($customerRepo->getId());
             try {
-                $this->_eventManager->dispatch('m3_login_userdetails', ['user_details' => $this->userDetails]);
+                $this->_eventManager->dispatch('m3_login_set_m3_role');
             }catch (Exception $e) {
                 $this->customerSession->logout();
                 $this->logger->writeLog($e->getMessage());
-                $this->messageManager->addErrorMessage('Authentication failed');
+
             }
         }
     }
