@@ -202,7 +202,7 @@ class Authentication
         $accessToken = isset($params['token']) ? $params['token'] : $this->_coreSession->getAccessToken();
         $client->setUri($url);
         $client->setHeaders(['Authorization' => 'Bearer ' . $accessToken]);
-        $client->setHeaders(['accept' => 'application/json;charset=utf-8']);
+        $client->setHeaders(['accept' => 'application/json']);
         if (isset($params['data'])) {
             $data = json_encode($params['data']);
         } else {
