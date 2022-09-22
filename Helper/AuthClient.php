@@ -99,6 +99,10 @@ class AuthClient extends AbstractHelper
 
     public function trimURL($url)
     {
+        if(!$url)
+        {
+            return "";
+        }
         return trim(rtrim($url, '/'));
     }
 

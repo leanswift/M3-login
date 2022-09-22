@@ -110,10 +110,18 @@ final class AuthPlugin
     {
         $isEnable = $this->auth->isEnable();
         $flag = true;
+        $dnsArray =[];
+        $domain ="";
         if ($isEnable) {
-            $domain = substr($username, strpos($username, '@') + 1);
+            if($username)
+            {
+             $domain = substr($username, strpos($username, '@') + 1);
+            }
             $dns = $this->auth->getDomain();
-            $dnsArray = explode(",", $dns);
+            if($dns)
+            {
+             $dnsArray = explode(",", $dns);
+            }
             if (in_array($domain, $dnsArray)) {
                 $this->_coreSession->start();
                 $this->_coreSession->setEmail($username);
