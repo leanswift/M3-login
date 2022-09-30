@@ -18,9 +18,9 @@
   -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <type name="Magento\Customer\Model\AccountManagement">
-        <plugin name="LoginAuthPlugin" type="LeanSwift\Login\Plugin\Customer\AuthPlugin" sortOrder="100"/>
-    </type>
+<!--    <type name="Magento\Customer\Model\AccountManagement">-->
+<!--        <plugin name="LoginAuthPlugin" type="LeanSwift\Login\Plugin\Customer\AuthPlugin" sortOrder="100"/>-->
+<!--    </type>-->
 
     <type name="LeanSwift\EconnectBase\Helper\Erpapi">
         <plugin name="login-erpapi-plugin" type="LeanSwift\Login\Plugin\ErpapiPlugin" sortOrder="2"/>

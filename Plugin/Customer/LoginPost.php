@@ -3,7 +3,10 @@
 namespace LeanSwift\Login\Plugin\Customer;
 
 use Laminas\Stdlib\Parameters;
+use LeanSwift\Login\Helper\AuthClient;
 use Magento\Customer\Controller\Account\LoginPost as CustomerLoginPost;
+use Magento\Framework\App\Request\DataPersistorInterface;
+use Magento\Framework\Controller\Result\RedirectFactory;
 
 /**
  * Class LoginPost
@@ -12,36 +15,44 @@ use Magento\Customer\Controller\Account\LoginPost as CustomerLoginPost;
 class LoginPost
 {
     protected $parametersInterface;
+    private AuthClient $authClient;
+    private RedirectFactory $resultRedirectFactory;
+    private DataPersistorInterface $dataPersistor;
 
-    /**
-     * LoginPost constructor.
-     * @param Parameters $parameters
-     */
-    public function __construct(
-        Parameters $parameters
+       public function __construct(
+        Parameters $parameters,
+        AuthClient $authClient,
+        RedirectFactory $resultRedirectFactory,
+        DataPersistorInterface $dataPersistor
     ) {
         $this->parametersInterface = $parameters;
+        $this->authClient = $authClient;
+        $this->resultRedirectFactory = $resultRedirectFactory;
+        $this->dataPersistor = $dataPersistor;
     }
 
     /**
-     * Add Dummy Password
      *
      * @inheirtDoc
      * @param CustomerLoginPost $subject
      */
-    public function beforeExecute(CustomerLoginPost $subject)
+    public function aroundExecute(CustomerLoginPost $subject, callable $proceed)
     {
-        $subject->getRequest()->setParams(['form_key' => $subject->getRequest()->getParam('form_key')]);
-        $loginData = $subject->getRequest()->getPost('login');
-        if (!$loginData['password']) {
-            $loginData['password'] = $this->getDummyPassword();
-            $this->parametersInterface->fromArray(['login' => $loginData]);
-            $subject->getRequest()->setPost($this->parametersInterface);
+        $isEnable = $this->authClient->isEnable();
+        if(!$isEnable)
+        {
+            return $proceed();
         }
+        return $this->redirectM3Url($subject);
     }
 
-    public function getDummyPassword()
-    {
-        return md5(uniqid(rand(), true));
+    private function redirectM3Url($subject) {
+        $username = $subject->getRequest()->getPost('login')['username'];
+        $this->dataPersistor->clear('login_username');
+        $this->dataPersistor->set('login_username', $username);
+        $redirectionUrl = $this->authClient->getOauthLink();
+        $resultRedirect = $this->resultRedirectFactory->create();
+        $resultRedirect->setUrl($redirectionUrl);
+        return $resultRedirect;
     }
 }
