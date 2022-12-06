@@ -42,8 +42,9 @@ class Authentication
         $this->authkey = $authkey;
     }
 
-    public function getUserName()
+    public function getUserName($code='')
     {
+        $this->authClient->getRequestToken($code);
         $customerData = [];
         $mingleUrl = $this->authClient->getMingleLink();
         if (!$mingleUrl) {
@@ -73,10 +74,11 @@ class Authentication
         return $customerData;
     }
 
-    public function getUserDetails($mingleUrl,  $method = Constant::MINGLE_USER_DETAIL)
+    public function getUserDetails($mingleUrl, $method = Constant::MINGLE_USER_DETAIL)
     {
+        $accessToken = $this->authClient->getAccessToken();
         $serviceURL = $mingleUrl.$method;
-        $output = $this->ion->sendDirectRequest($serviceURL,[]);
+        $output = $this->ion->sendDirectRequest($serviceURL,[],'POST',$accessToken);
         $responseBody =  json_decode($output->asString(), true);
         if (!empty($responseBody)) {
             return $responseBody['UserDetailList'][0];
@@ -94,7 +96,8 @@ class Authentication
         if ($userCode) {
             $serviceURL = $serviceURL . $userCode;
         }
-        $output = $this->ion->sendDirectRequest($serviceURL, [], Request::METHOD_GET);
+        $accessToken = $this->authClient->getAccessToken();
+        $output = $this->ion->sendDirectRequest($serviceURL, [], Request::METHOD_GET,$accessToken);
         $recordInfo =  json_decode($output->asString(), true);
         if (!empty($recordInfo)) {
             array_walk_recursive($recordInfo, function ($value, $key) use (&$userName, &$userId) {

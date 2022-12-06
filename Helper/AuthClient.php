@@ -146,16 +146,16 @@ class AuthClient extends AbstractHelper
         return $this->scopeConfig->getValue(Constant::XML_PATH_ENABLE);
     }
 
-    public function getAccessToken($storeId = null)
+    public function getAccessToken()
     {
         return $this->session->getAccessToken();
     }
 
-    public function getRequestToken()
+    public function getRequestToken($code)
     {
         $accessToken = '';
         $client = $this->getClient();
-        $url = $this->getOauthLink();
+        $url = $this->getTokenURL();
         if (!$url) {
             return '';
         }
@@ -165,10 +165,10 @@ class AuthClient extends AbstractHelper
         if (!$clientId || !$clientSecret) {
             return '';
         }
-        $credentials['client_id'] = $clientId;
-        $credentials['client_secret'] = $clientSecret;
-        $credentials['grant_type'] = 'refresh_token';
-        $credentials['refresh_token'] = $this->session->getRefreshToken();
+        $client->setAuth($clientId,$clientSecret);
+        $credentials['grant_type'] = 'authorization_code';
+        $credentials['code'] = $code;
+        $credentials['redirect_uri'] = 'https://cp244.test/lslogin/index/index/';
         $client->setParameterPost($credentials);
         $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);
         try {
