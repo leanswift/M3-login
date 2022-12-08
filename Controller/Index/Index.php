@@ -131,7 +131,7 @@ class Index extends Action
                 if (!$code) {
                     throw new Exception('Authentication code is not present');
                 }
-                $this->loginAsCustomer();
+                $this->loginAsCustomer($code);
             } else {
                 throw new Exception('Authentication failed from M3');
             }
@@ -143,9 +143,9 @@ class Index extends Action
         $this->_redirect($this->getRedirectPath());
     }
 
-    public function loginAsCustomer()
+    public function loginAsCustomer($code)
     {
-        $userDetails = $this->helper->authModel()->getUserName();
+        $userDetails = $this->helper->authModel()->getUserName($code);
         if (!empty($userDetails)) {
             if (array_key_exists('username', $userDetails) && array_key_exists('email', $userDetails)) {
                 if (!$userDetails['email']) {

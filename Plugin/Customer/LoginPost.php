@@ -7,6 +7,7 @@ use LeanSwift\Login\Helper\AuthClient;
 use Magento\Customer\Controller\Account\LoginPost as CustomerLoginPost;
 use Magento\Framework\App\Request\DataPersistorInterface;
 use Magento\Framework\Controller\Result\RedirectFactory;
+use LeanSwift\CustomerPortal\Service\InternalCustomer;
 
 /**
  * Class LoginPost
@@ -18,10 +19,12 @@ class LoginPost
     private AuthClient $authClient;
     private RedirectFactory $resultRedirectFactory;
     private DataPersistorInterface $dataPersistor;
+    private InternalCustomer $internalCustomer;
 
        public function __construct(
         Parameters $parameters,
         AuthClient $authClient,
+        InternalCustomer $internalCustomer,
         RedirectFactory $resultRedirectFactory,
         DataPersistorInterface $dataPersistor
     ) {
@@ -29,21 +32,26 @@ class LoginPost
         $this->authClient = $authClient;
         $this->resultRedirectFactory = $resultRedirectFactory;
         $this->dataPersistor = $dataPersistor;
+        $this->internalCustomer = $internalCustomer;
     }
 
     /**
-     *
-     * @inheirtDoc
      * @param CustomerLoginPost $subject
+     * @param callable          $proceed
+     *
+     * @return \Magento\Framework\Controller\Result\Redirect
      */
     public function aroundExecute(CustomerLoginPost $subject, callable $proceed)
     {
         $isEnable = $this->authClient->isEnable();
-        if(!$isEnable)
+        $username = $subject->getRequest()->getPost('login')['username'];
+        $isInternal = $this->internalCustomer->isInternalCustomer($username);
+        if($isEnable && $isInternal)
         {
-            return $proceed();
+            return $this->redirectM3Url($subject);
         }
-        return $this->redirectM3Url($subject);
+        return $proceed();
+
     }
 
     private function redirectM3Url($subject) {
