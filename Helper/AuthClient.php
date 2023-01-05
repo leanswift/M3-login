@@ -168,7 +168,9 @@ class AuthClient extends AbstractHelper
         $client->setAuth($clientId,$clientSecret);
         $credentials['grant_type'] = 'authorization_code';
         $credentials['code'] = $code;
-        $credentials['redirect_uri'] = 'https://cp244.test/lslogin/index/index/';
+        $baseLink = $this->storeManager->getStore()->getBaseUrl();
+        $redirectLink = $baseLink.'lslogin/index/index/';
+        $credentials['redirect_uri'] = $redirectLink;
         $client->setParameterPost($credentials);
         $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);
         try {
