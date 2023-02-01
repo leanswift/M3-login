@@ -27,6 +27,7 @@ use Magento\Customer\Model\CustomerFactory;
 use Magento\Customer\Model\Session;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\Request\DataPersistorInterface;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\InputException;
@@ -57,10 +58,6 @@ class Index extends Action
     protected $customerFactory;
 
     /**
-     * @var Session
-     */
-    protected $customerSession;
-    /**
      * @var Logger
      */
     protected $logger;
@@ -80,6 +77,7 @@ class Index extends Action
      * @var array|string
      */
     private $userDetails;
+    private DataPersistorInterface $dataPersistor;
 
     /**
      * Index constructor.
@@ -101,18 +99,18 @@ class Index extends Action
         CustomerFactory $customerFactory,
         Session $customerSession,
         Data $data,
-        SessionManagerInterface $coreSession,
         Logger $logger,
+        DataPersistorInterface $dataPersistor,
         $redirectPath = self::PATH
     ) {
         $this->helper = $data;
         $this->customerRepo = $customerRepo;
         $this->customerFactory = $customerFactory;
         $this->customerSession = $customerSession;
-        $this->_coreSession = $coreSession;
         $this->storeManager = $storeManager;
         $this->logger = $logger;
         $this->redirectPath = $redirectPath;
+        $this->dataPersistor = $dataPersistor;
         parent::__construct($context);
     }
 
@@ -133,12 +131,7 @@ class Index extends Action
                 if (!$code) {
                     throw new Exception('Authentication code is not present');
                 }
-                $accessToken = $this->helper->authModel()->generateToken($code);
-                if ($accessToken) {
-                    $this->loginAsCustomer($accessToken);
-                } else {
-                    throw new Exception('Access token could not be created');
-                }
+                $this->loginAsCustomer($code);
             } else {
                 throw new Exception('Authentication failed from M3');
             }
@@ -150,9 +143,9 @@ class Index extends Action
         $this->_redirect($this->getRedirectPath());
     }
 
-    public function loginAsCustomer($accessToken)
+    public function loginAsCustomer($code)
     {
-        $userDetails = $this->helper->authModel()->getUserName($accessToken);
+        $userDetails = $this->helper->authModel()->getUserName($code);
         if (!empty($userDetails)) {
             if (array_key_exists('username', $userDetails) && array_key_exists('email', $userDetails)) {
                 if (!$userDetails['email']) {
@@ -187,7 +180,8 @@ class Index extends Action
      */
     public function validateEmail($email)
     {
-        $loginCustomerEmail = $this->_coreSession->getEmail();
+        $loginCustomerEmail = $this->dataPersistor->get('login_username');
+        $this->dataPersistor->clear('login_username');
         return (strcasecmp($loginCustomerEmail, $email) == 0);
     }
 
