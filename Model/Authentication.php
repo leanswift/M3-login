@@ -44,13 +44,13 @@ class Authentication
 
     public function getUserName($code='')
     {
-        $this->authClient->getRequestToken($code);
+        $accessToken = $this->authClient->getRequestToken($code);
         $customerData = [];
         $mingleUrl = $this->authClient->getMingleLink();
         if (!$mingleUrl) {
             return '';
         }
-        $userDetailList = $this->getUserDetails($mingleUrl);
+        $userDetailList = $this->getUserDetails($mingleUrl, $accessToken);
         if (!empty($userDetailList)) {
             $authorizeKey = $this->authkey;
             $userCode = $userDetailList['UserName'];
@@ -74,9 +74,9 @@ class Authentication
         return $customerData;
     }
 
-    public function getUserDetails($mingleUrl, $method = Constant::MINGLE_USER_DETAIL)
+    public function getUserDetails($mingleUrl, $accessToken = '')
     {
-        $accessToken = $this->authClient->getAccessToken();
+        $method = Constant::MINGLE_USER_DETAIL;
         $serviceURL = $mingleUrl.$method;
         $output = $this->ion->sendDirectRequest($serviceURL,[],'POST',$accessToken);
         $responseBody =  json_decode($output->asString(), true);
