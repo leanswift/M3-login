@@ -144,9 +144,9 @@ class AuthClient extends AbstractHelper
         return $tokenURL;
     }
 
-    public function getMingleLink()
+    public function getIfsLink()
     {
-        return $this->trimURL($this->scopeConfig->getValue(Constant::XML_PATH_WEB_MINGLE_URL));
+        return $this->trimURL($this->scopeConfig->getValue(Constant::XML_PATH_WEB_IFS_URL));
     }
 
     public function getIonAPIServiceLink()

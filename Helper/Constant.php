@@ -28,7 +28,7 @@ use LeanSwift\EconnectBase\Helper\Constant as BaseConstant;
  */
 class Constant extends BaseConstant
 {
-    const XML_PATH_WEB_MINGLE_URL = 'leanswift_login/authentication/mingle_url';
+    const XML_PATH_WEB_IFS_URL = 'leanswift_login/authentication/ifs_url';
 
     //const XML_PATH_WEB_SERVICE_URL = 'leanswift_login/authentication/service_url';
 
@@ -60,7 +60,7 @@ class Constant extends BaseConstant
     const LOGGER_NAME = '/var/log/m3Login.log';
 
     const LOGGER_ENABLE_PATH = 'leanswift_login/general/log';
-    const MINGLE_USER_DETAIL = '/api/v1/mingle/go/User/Detail';
+    const IFS_USER_DETAIL = '/usermgt/v2/users/me';
     const GET_USER_BY_EUID = '/MNS150MI/GetUserByEuid?EUID=';
 
     const USID = 'USID';
