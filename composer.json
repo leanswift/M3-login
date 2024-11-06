@@ -9,8 +9,15 @@
     "license": [
         "proprietary"
     ],
-    "autoload": {    "files": [        "registration.php"    ],    "psr-4": {        "LeanSwift\\Login\\": ""    }},
     "psr-4": {
       "LeanSwift\\Login\\": ""
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "LeanSwift\\Idm\\": ""
+        }
     }
 }
