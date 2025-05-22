@@ -56,6 +56,14 @@ class Index extends Action
      * @var CustomerFactory
      */
     protected $customerFactory;
+    /**
+     * @var CustomerSession
+     */
+    protected $customerSession;
+    /**
+     * @var data
+     */
+    protected $data;
 
     /**
      * @var Logger
@@ -228,9 +236,9 @@ class Index extends Action
             $customerInfo->setCustomAttribute('username', $username);
 
             $this->_eventManager->dispatch('customer_register_success', [
-                    'account_controller' => $this,
-                    'customer' => $customerInfo
-                ]);
+                'account_controller' => $this,
+                'customer' => $customerInfo
+            ]);
             $this->customerRepo->save($customerInfo);
             $this->loginCustomer($email);
         } catch (Exception $e) {

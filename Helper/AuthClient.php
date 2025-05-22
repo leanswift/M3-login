@@ -29,10 +29,10 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\ScopeInterface;
-use Zend_Http_Client;
-use Zend_Http_Client_Adapter_Exception;
-use Zend_Http_Client_Adapter_Socket;
-use Zend_Http_Client_Exception;
+use Laminas\Http\Request;
+use Laminas\Http\Client;
+use Magento\Framework\HTTP\LaminasClientFactory;
+use Laminas\Http\Client\Adapter\Socket;
 use Magento\Store\Model\StoreManagerInterface;
 
 class AuthClient extends AbstractHelper
@@ -61,7 +61,21 @@ class AuthClient extends AbstractHelper
      * @var FormKey
      */
     protected $formKey;
+	private Socket $laminasSocket;
+
+    /**
+     * @var LaminasClientFactory
+     */
+    private $clientFactory;
     protected $storeManager;
+
+    const CLIENT_ID = 'client_id';
+    const CLIENT_SECRET = 'client_secret';
+    const GRANT_TYPE = 'grant_type';
+    const CODE = 'code';
+    const AUTH_CODE = 'authorization_code';
+    const REDIRECT_URL = 'redirect_uri';
+
 
     public function __construct(
         Context $context,
@@ -71,6 +85,8 @@ class AuthClient extends AbstractHelper
         ManagerInterface $manager,
         Logger $logger,
         FormKey $formKey,
+		Socket               $laminasSocket,
+        LaminasClientFactory $clientFactory,
         StoreManagerInterface $storeManager
     ) {
         $this->encryptorInterface = $encrypt;
@@ -79,6 +95,8 @@ class AuthClient extends AbstractHelper
         $this->logger = $logger;
         $this->messageManager = $manager;
         $this->formKey = $formKey;
+		$this->laminasSocket = $laminasSocket;
+        $this->clientFactory = $clientFactory;
         $this->storeManager = $storeManager;
         parent::__construct($context);
     }
@@ -126,9 +144,9 @@ class AuthClient extends AbstractHelper
         return $tokenURL;
     }
 
-    public function getMingleLink()
+    public function getIfsLink()
     {
-        return $this->trimURL($this->scopeConfig->getValue(Constant::XML_PATH_WEB_MINGLE_URL));
+        return $this->trimURL($this->scopeConfig->getValue(Constant::XML_PATH_WEB_IFS_URL));
     }
 
     public function getIonAPIServiceLink()
@@ -165,17 +183,22 @@ class AuthClient extends AbstractHelper
         if (!$clientId || !$clientSecret) {
             return '';
         }
-        $client->setAuth($clientId,$clientSecret);
-        $credentials['grant_type'] = 'authorization_code';
-        $credentials['code'] = $code;
         $baseLink = $this->storeManager->getStore()->getBaseUrl();
         $redirectLink = $baseLink.'lslogin/index/index/';
-        $credentials['redirect_uri'] = $redirectLink;
+        $client->setUri($url);
+        $client->setOptions(['maxredirects' => 3, 'timeout' => 60]);
+        $client->setMethod(Request::METHOD_POST);
+        $credentials = [
+            self::CLIENT_ID => $clientId,
+            self::CLIENT_SECRET => $clientSecret,
+            self::CODE => $code,
+            self::GRANT_TYPE => self::AUTH_CODE,
+            self::REDIRECT_URL => $redirectLink
+        ];
         $client->setParameterPost($credentials);
-        $client->setConfig(['maxredirects' => 3, 'timeout' => 60]);
         try {
-            $response = $client->request('POST');
-            if ($response->getStatus() == 200) {
+            $response = $client->send();
+            if ($response->getStatusCode() == 200) {
                 $parsedResult = $response->getBody();
                 $responseBody = json_decode($parsedResult, true);
                 $accessToken = $responseBody['access_token'];
@@ -194,11 +217,10 @@ class AuthClient extends AbstractHelper
      * @throws Zend_Http_Client_Adapter_Exception
      * @throws Zend_Http_Client_Exception
      */
-    public function getClient()
+   public function getClient()
     {
-        //Initialize Zend Client Object
-        $client = new Zend_Http_Client();
-        $options = [
+        $client = $this->clientFactory->create();
+        $clientConfig = [
             'ssl' => [
                 // Verify server side certificate,
                 // do not accept invalid or self-signed SSL certificates
@@ -209,10 +231,12 @@ class AuthClient extends AbstractHelper
                 'capture_peer_cert' => false,
             ],
         ];
+
         // Create an adapter object and attach it to the HTTP client
-        $adapter = new Zend_Http_Client_Adapter_Socket();
-        $adapter->setStreamContext($options);
+        $adapter = $this->laminasSocket;
+        $adapter->setStreamContext($clientConfig);
         $client->setAdapter($adapter);
+
         return $client;
     }
 
@@ -258,7 +282,7 @@ class AuthClient extends AbstractHelper
     public function getParamInURL($clientId)
     {
         $returnUrl = $this->getReturnUrl();
-        return "?client_id=$clientId&max_age=20&prompt=login&nonce=NONCE&response_type=code&redirect_uri=$returnUrl&state=" . $this->getFormKey();
+        return "?client_id=$clientId&max_age=20&nonce=NONCE&response_type=code&redirect_uri=$returnUrl&state=" . $this->getFormKey();
     }
 
     /**

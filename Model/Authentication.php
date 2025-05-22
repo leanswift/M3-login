@@ -44,20 +44,20 @@ class Authentication
 
     public function getUserName($code='')
     {
-        $this->authClient->getRequestToken($code);
+        $accessToken = $this->authClient->getRequestToken($code);
         $customerData = [];
-        $mingleUrl = $this->authClient->getMingleLink();
-        if (!$mingleUrl) {
+        $ifsUrl = $this->authClient->getIfsLink();
+        if (!$ifsUrl) {
             return '';
         }
-        $userDetailList = $this->getUserDetails($mingleUrl);
+        $userDetailList = $this->getUserDetails($ifsUrl, $accessToken);
         if (!empty($userDetailList)) {
             $authorizeKey = $this->authkey;
-            $userCode = $userDetailList['UserName'];
-            $email = $userDetailList[$authorizeKey] ?? '';
-            $firstName = $userDetailList['FirstName'];
-            $lastName = $userDetailList['LastName'];
-            $personID = $userDetailList['PersonId'];
+            $userCode = $userDetailList['id'];
+            $email = $userDetailList['emails'][0]['value'] ?? '';
+            $firstName = $userDetailList['name']['givenName'];
+            $lastName = $userDetailList['name']['familyName'];
+            $personID = $userDetailList['ifsPersonId'];
             $customerData = [
                 'email' => $email,
                 'firstname' => $firstName,
@@ -68,20 +68,20 @@ class Authentication
             if ($isCloud) {
                 $customerData['username'] = $this->getUserNameDetail($userCode);
             } else {
-                $customerData['username'] = $userDetailList['PersonId'];
+                $customerData['username'] = $userDetailList['ifsPersonId'];
             }
         }
         return $customerData;
     }
 
-    public function getUserDetails($mingleUrl, $method = Constant::MINGLE_USER_DETAIL)
+    public function getUserDetails($ifsUrl, $accessToken = '')
     {
-        $accessToken = $this->authClient->getAccessToken();
-        $serviceURL = $mingleUrl.$method;
-        $output = $this->ion->sendDirectRequest($serviceURL,[],'POST',$accessToken);
+        $method = Constant::IFS_USER_DETAIL;
+        $serviceURL = $ifsUrl.$method;
+        $output = $this->ion->sendDirectRequest($serviceURL,[],'GET',$accessToken);
         $responseBody =  json_decode($output->asString(), true);
         if (!empty($responseBody)) {
-            return $responseBody['UserDetailList'][0];
+            return $responseBody['response']['userlist'][0];
         }
         return [];
     }

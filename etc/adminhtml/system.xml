@@ -68,11 +68,11 @@
                     <validate>validate-url</validate>
                     <comment><![CDATA[URL to Authorize user in Infor OS]]></comment>
                 </field>
-                <field id="mingle_url" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="0"
+                <field id="ifs_url" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="0"
                        showInStore="0">
-                    <label>Service URL for Infor Mingle</label>
+                    <label>Service URL for Infor IFS</label>
                     <validate>validate-url</validate>
-                    <comment><![CDATA[URL for accessing Mingle API]]></comment>
+                    <comment><![CDATA[URL for accessing IFS Service API]]></comment>
                 </field>
                 <field id="web_service_clientid" translate="label" type="text" sortOrder="3" showInDefault="1"
                        showInWebsite="0" showInStore="0">
